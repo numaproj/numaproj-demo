@@ -1,0 +1,151 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+* {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 10pt;
+}
+
+.logo {
+    z-index: 1;
+    position: absolute;
+    top: 1em;
+    left: 1em;
+    width: 150px;
+}
+
+.versionbox {
+    z-index: 1;
+    position: absolute;
+    bottom: 48px;
+    left: 10em;
+}
+
+.textbox {
+    z-index: 1;
+    position: absolute;
+    bottom: 2em;
+    right: 6em;
+    display: flex;
+    flex-direction: row;
+}
+
+.slider-group {
+    padding: 20px;
+    color: #DFDDDD;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: row;
+    padding: 5px;
+}
+
+.output-style {
+    font-size: 35px;
+    padding: 5px 5px 20px;
+    font-width: 700;
+}
+
+.input-style {
+    width: 250px;
+    margin-left: 15px;
+    margin-right: 15px;
+    accent-color: #F55050;
+}
+
+input#delayLength {
+    width: 190px;
+}
+
+.currentColor {
+    text-align: center
+}
+
+.select-colors {
+    position: relative;
+    display: flex;
+}
+
+.checkbox-style {
+    position: relative;
+    left: -56px;
+    top: 4px;
+    height: 20px;
+    width: 20px;
+    accent-color: #E27E56;
+}
+
+.version-block {
+    margin-left: 10px;
+}
+
+.version-style {
+    font-size: 17px;
+    position: relative;
+    bottom: -1px;
+    left: -27px;
+    color: #DFDDDD;
+}
+
+.availableColors {
+    display: table;
+
+}
+
+.square {
+    width: 22px;
+    float: left;
+    height: 22px;
+    background: red;
+    border-width: 4px;
+    border-color: #000;
+    border-style: hidden;
+    margin: 5px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* The slider itself */
+.slider {
+    -webkit-appearance: none; /* Override default CSS styles */
+    appearance: none;
+    width: 98%; /* Full-width */
+    height: 25px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+
+}
+
+/* Mouse-over effects */
+.slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #4CAF50;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #4CAF50;
+    cursor: pointer;
+}
