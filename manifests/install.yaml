@@ -106,5 +106,5 @@ spec:
       protocol: TCP
       targetPort: 8080
   selector:
-    app: demo-rest-app
+    app: numalogic-demo
   type: ClusterIP
