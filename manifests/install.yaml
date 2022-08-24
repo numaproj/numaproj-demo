@@ -104,7 +104,7 @@ spec:
     - name: iks-metric
       port: 8490
       protocol: TCP
-      targetPort: 8080
+      targetPort: 8490
   selector:
     app: numalogic-demo
   type: ClusterIP
