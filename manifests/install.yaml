@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: numalogic-demo
+  name: sandbox-numalogic-demo
 spec:
   finalizers:
     - kubernetes
@@ -10,7 +10,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: numalogic-demo-deployment
-  namespace: numalogic-demo
+  namespace: sandbox-numalogic-demo
   labels:
     app: numalogic-demo
     app.kubernetes.io/instance: numalogic-demo
@@ -82,7 +82,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: numalogic-demo-service
-  namespace: numalogic-demo
+  namespace: sandbox-numalogic-demo
 spec:
   ports:
     - name: service
@@ -98,7 +98,7 @@ metadata:
   labels:
     iks-metric: actuator-prometheus
   name: numalogic-demo-service-metrics
-  namespace: numalogic-demo
+  namespace: sandbox-numalogic-demo
 spec:
   clusterIP: 172.20.63.125
   clusterIPs:
