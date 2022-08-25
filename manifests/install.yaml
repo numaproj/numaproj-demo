@@ -100,9 +100,9 @@ metadata:
   name: numalogic-demo-service-metrics
   namespace: sandbox-numalogic-demo
 spec:
-  clusterIP: 172.20.63.125
+  clusterIP: 172.20.63.128
   clusterIPs:
-    - 172.20.63.125
+    - 172.20.63.128
   ports:
     - name: iks-metric
       port: 8490
