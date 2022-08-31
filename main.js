@@ -82,7 +82,7 @@ class App {
 	}
 
 	load(body) {
-	    fetch('./color', {
+	    fetch('http://localhost:8080/color', {
 	        method: "POST",
 	        body: this.req(),
 	    })
