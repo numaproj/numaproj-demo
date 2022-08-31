@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" type="text/css" href="main.css">
-    <title>Argo Rollouts</title>
+    <title>ArgoCD Observability</title>
 </head>
 <body>
 <div>
     <div style="display: none">
         <h3 id="currentColor" style="text-align: center">Color</h3>
         <label>Latency Seconds:</label>
-        <input type="text" value="0" id="delayLength">
+        <output class="output-style" name="delayPercentText" id="delayPercentText">0%</output>
+        <input type="text" value="0" id="delayPercent">
     </div>
 </div>
 <div class="versionbox">
@@ -30,13 +31,13 @@
         </div>
     </div>
     <div class="slider-group">
-        <label>Latency Rate</label>
-        <output class="output-style" name="delayPercentText" id="delayPercentText">0%</output>
+        <label>Latency</label>
+        <output class="output-style" name="delayLengthText" id="delayLengthText">0s</output>
         <div class="input-group">
-            <label>0%</label>
-            <input class="input-style" type="range" min="0" max="100" value="0" class="slider" id="delayPercent"
-                   onchange="delayPercentText.value = delayPercent.value + '%'">
-            <label>100%</label>
+            <label>0s</label>
+            <input class="input-style" type="range" min="0" max="20" value="0" class="slider" id="delayLength"
+                   onchange="delayLengthText.value = delayLength.value + 's'">
+            <label>20s</label>
         </div>
     </div>
 </div>
@@ -48,7 +49,6 @@
   document.body.appendChild(canvas);
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  // canvas.style = "background: url('./images/background.png')"
 
   window.addEventListener('resize', function () {
     canvas.width = window.innerWidth;

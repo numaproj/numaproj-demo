@@ -3,11 +3,7 @@ class Particle {
         this.statusCode = statusCode
         this.color = color;
         if (this.statusCode == 500) {
-            // if (color == "yellow") {
-                // this.color = "GoldenRod";
-            // } else {
-                this.color = "dark" + color;
-            // }
+            this.color = "dark" + color;
         }
         this.x = x;
         this.y = y;
@@ -20,13 +16,13 @@ class Particle {
         if (responseTime > this.maxDelay) {
             this.vx = this.maxSpeeed - this.maxSlowDown
         }
-        // console.log(responseTime)
+
         this.vy = 0;
         this.colorMap = {
-            "yellow": "images/yellow.png",
-            "blue": "images/blue.png",
-            "darkblue": "images/bluesick.png",
-            "darkyellow": "images/yellowsick.png",
+            "yellow": "yellow.png",
+            "blue": "purple.png",
+            "darkblue": "purplesick.png",
+            "darkyellow": "yellowsick.png",
         }
     }
 
@@ -37,16 +33,8 @@ class Particle {
 
     draw(context) {
         const img = document.createElement("img");
-        // console.log('this.color', this.color, this.colorMap[this.color])
         img.src = this.colorMap[this.color]
         context.drawImage(img, this.x, this.y, 70, 70);
-        // context.beginPath();
-        // context.fillStyle=this.color;
-        // context.shadowBlur=15;
-        // context.shadowColor='#009933';
-        // context.arc(this.x, this.y, this.size, 0, Math.PI*2, true);
-        // context.closePath();
-        // context.fill();
         if (this.statusCode == 500) {
             // context.lineWidth = 5;
             // context.strokeStyle = "black";
@@ -65,9 +53,9 @@ class Chart {
         this.height = 180
         this.width = 17;
         this.colorMap = {
-            "yellow": "#7719D6",
+            "blue": "#7719D6",
             "darkyellow" : "#FF0000",
-            "blue" : "#FEB202",
+            "yellow" : "#FEB202",
             "darkblue" : "#FF0000",
         }
         this.bottomOffset = 100
@@ -153,13 +141,8 @@ class Chart {
 
             bar.forEach((function(part) {
                 if (part[500] > 0) {
-                    let color = part.color
-                    // if (color == "yellow") {
-                    //     color = "GoldenRod";
-                    // } else {
-                        color = "dark" + color;
-                    // }
-                    // context.fillStyle = this.colorMap[color]
+                    let color = part.color;
+                    color = "dark" + color;
                     const partHeight = height * part[500];
                     // context.fillRect(x, this.app.canvas.height - 20 - (partHeight + offset), -width, partHeight);
                     // console.log(color, context.fillStyle, x,this.app.canvas.height - this.bottomOffset - (partHeight + offset), width, partHeight )
@@ -189,12 +172,10 @@ export class App {
         this.sliders = new Sliders(this)
     }
 
-
-    
-
+    // http://localhost:8080 to test
     addParticle() {
         var sendTime = (new Date()).getTime();
-        fetch('http://localhost:8080/color', {
+        fetch('./color', {
             method: "POST",
             body: JSON.stringify(this.sliders.GetValues()),
         })
@@ -226,7 +207,7 @@ export class App {
             prevDate = nextPrevDate;
 
             const img = document.createElement("img");
-            img.src = "images/background.png"
+            img.src = "background.png"
             // context.fillStyle = 'rgba(39,12,83,0.8)';
             // context.fillRect(0, 0, this.canvas.width, this.canvas.height);
             context.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
@@ -245,14 +226,28 @@ export class Color {
         this.color = color;
         this.isSelected = false;
 
-        this.return500 = 0;
-        this.delayPercent = 0;
-        this.delayLength = 0;
+        // http://localhost:8080 to test
+        const request = new XMLHttpRequest();
+        request.open('GET', './env.js', false);  // `false` makes the request synchronous
+        request.send(null);
+
+        if (request.status === 200) {
+            const str = request.responseText
+            const jsonObj = JSON.parse(str.replace(new RegExp(/const ENV_.*?=/),''))
+            this.return500 = jsonObj.errorRate ? jsonObj.errorRate: 0;
+            this.delayPercent = 100;
+            this.delayLength = jsonObj.latency ? jsonObj.latency: 0;
+        }
+        else {
+            this.return500 = 0
+            this.delayPercent = 0
+            this.delayLength = 0
+        }
 
         this.colorMap = {
-            "yellow": "#7719D6",
+            "blue": "#7719D6",
             "darkyellow" : "#FF0000",
-            "blue" : "#FEB202",
+            "yellow" : "#FEB202",
             "darkblue" : "#FF0000",
         }
 
@@ -296,7 +291,7 @@ export class Color {
             "color": this.color,
             "return500": parseInt(this.return500),
             "delayPercent": parseInt(this.delayPercent),
-            "delayLength": parseInt(this.delayLength)
+            "delayLength": parseInt(this.delayLength) // parseInt(this.delayPercent) > 0 ? 1 : 0 // parseInt(this.delayLength)
         }
     }
 }
@@ -319,6 +314,7 @@ export class Sliders {
         this.delayPercent.addEventListener("input", this.updateColor.bind(this))
         
         this.delayLength = document.getElementById("delayLength");
+        this.delayLengthText = document.getElementById("delayLengthText");
         this.delayLength.addEventListener("input", this.updateColor.bind(this))
 
         
@@ -334,7 +330,7 @@ export class Sliders {
     updateColor() {
         this.currentColor.return500 = this.return500.value;
         this.currentColor.delayPercent =this.delayPercent.value;
-        this.currentColor.delayLength = this.delayLength.value;
+        this.currentColor.delayLength =  this.delayLength.value //this.currentColor.delayPercent > 0 ? 1: 0 //this.delayLength.value;
     }
 
     draw(context) {
@@ -366,6 +362,7 @@ export class Sliders {
             this.currentColor = newColor
             this.currentColorLabel.innerText = capitalize(newColor.color)
             isSelected = true
+            this.SetSliders(newColor)
         }
         newColor.setIsSelected(isSelected)
 
@@ -393,7 +390,8 @@ export class Sliders {
         this.return500Text.innerText = color.return500 + "%"
         this.delayPercent.value = color.delayPercent
         this.delayPercentText.innerText = color.delayPercent + "%"
-        this.delayLength.value = color.delayLength
+        this.delayLengthText.innerText = color.delayLength + "s"
+        this.delayLength.value = color.delayLength // delayPercent > 0 ? 1: 0 // color.delayLength
     }
 
     GetValues() {

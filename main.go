@@ -57,7 +57,7 @@ var totalRequestsLatency = prometheus.NewGaugeVec(
 		Name: "http_server_requests_seconds_sum",
 		Help: "http request duration",
 	},
-	[]string{"intuit_alert"},
+	[]string{"status", "intuit_alert"},
 )
 
 func init() {
@@ -88,7 +88,7 @@ func main() {
 	flag.StringVar(&listenAddr, "listen-addr", ":8080", "server listen address")
 	flag.IntVar(&terminationDelay, "termination-delay", defaultTerminationDelay, "termination delay in seconds")
 	flag.StringVar(&numCPUBurn, "cpu-burn", "", "burn specified number of cpus (number or 'all')")
-	flag.BoolVar(&tls, "tls", false, "Enable TLS (with self-signed certificate)")
+	flag.BoolVar(&tls, "tls", true, "Enable TLS (with self-signed certificate)")
 	flag.Parse()
 
 	rand.Seed(time.Now().UnixNano())
@@ -102,16 +102,24 @@ func main() {
 	router.Handle("/metrics", promhttp.Handler())
 	router.Handle("/actuator/prometheus", promhttp.Handler())
 	router.Handle("/healthz", promhttp.Handler())
+	metricRouter := http.NewServeMux()
+	metricRouter.Handle("/metrics", promhttp.Handler())
+	metricRouter.Handle("/actuator/prometheus", promhttp.Handler())
 	server := &http.Server{
 		Addr:    listenAddr,
 		Handler: router,
 	}
+	metrics := &http.Server{
+		Addr:    ":8490",
+		Handler: metricRouter,
+	}
 	if tls {
-		tlsConfig, err := CreateServerTLSConfig("", "", []string{"localhost", "numalogic-demo"})
+		tlsConfig, err := CreateServerTLSConfig("", "", []string{"localhost", "numalogic-demo", "127.0.0.1", "*"})
 		if err != nil {
 			log.Fatalf("Could not generate TLS config: %v\n", err)
 		}
 		server.TLSConfig = tlsConfig
+		metrics.TLSConfig = tlsConfig
 	}
 
 	done := make(chan bool)
@@ -121,6 +129,7 @@ func main() {
 	go func() {
 		sig := <-quit
 		server.SetKeepAlivesEnabled(false)
+		metrics.SetKeepAlivesEnabled(false)
 		log.Printf("Signal %v caught. Shutting down in %vs", sig, terminationDelay)
 		delay := time.NewTicker(time.Duration(terminationDelay) * time.Second)
 		defer delay.Stop()
@@ -142,9 +151,12 @@ func main() {
 	log.Printf("Started server on %s", listenAddr)
 	var err error
 	if tls {
+		go func() { err = metrics.ListenAndServeTLS("", "") }()
 		err = server.ListenAndServeTLS("", "")
 	} else {
+		go func() { err = metrics.ListenAndServe() }()
 		err = server.ListenAndServe()
+
 	}
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on %s: %v\n", listenAddr, err)
@@ -214,6 +226,7 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	statusCode := http.StatusOK
+
 	if colorParams.Return500Probability != nil && *colorParams.Return500Probability > 0 && *colorParams.Return500Probability >= rand.Intn(100) {
 		statusCode = http.StatusInternalServerError
 		totalRequests.WithLabelValues("500", "true").Inc()
@@ -224,7 +237,7 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 		totalRequests.WithLabelValues("200", "true").Inc()
 	}
 	duration := time.Now().Sub(start).Seconds()
-	totalRequestsLatency.WithLabelValues("true").Set(duration)
+	totalRequestsLatency.WithLabelValues(fmt.Sprintf("%d", statusCode), "true").Set(duration)
 	printColor(colorToReturn, w, statusCode)
 	log.Printf("%d %f - %s%s\n", statusCode, duration, colorToReturn, delayLengthStr)
 }
