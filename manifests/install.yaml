@@ -23,7 +23,7 @@ metadata:
     l2: sandbox
 spec:
   progressDeadlineSeconds: 600
-  replicas: 4
+  replicas: 6
   revisionHistoryLimit: 2
   strategy:
     rollingUpdate:
