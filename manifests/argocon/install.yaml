@@ -32,7 +32,7 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app: numalogic-demo
+      app: numalogic-argocon-demo
   template:
     metadata:
       labels:
@@ -89,7 +89,7 @@ spec:
       port: 8080
       targetPort: 8080
   selector:
-    app: numalogic-demo
+    app: numalogic-argocon-demo
   type: NodePort
 ---
 apiVersion: v1
@@ -109,5 +109,5 @@ spec:
       protocol: TCP
       targetPort: 8490
   selector:
-    app: numalogic-demo
+    app: numalogic-argocon-demo
   type: ClusterIP
