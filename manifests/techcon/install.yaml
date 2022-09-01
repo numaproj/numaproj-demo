@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: sandbox-numalogic-demo
+  name: numalogic-techcon-demo
 spec:
   finalizers:
     - kubernetes
@@ -10,10 +10,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: numalogic-demo-deployment
-  namespace: sandbox-numalogic-demo
+  namespace: numalogic-techcon-demo
   labels:
-    app: numalogic-demo
-    app.kubernetes.io/instance: numalogic-demo
+    app: numalogic-techcon-demo
+    app.kubernetes.io/instance: numalogic-techcon-demo
     applications.argoproj.io/app-name: numalogic-demo
     assetAlias: Intuit.sandbox.sandbox.numalogicdemo
     assetId: '4975369280839883999'
@@ -32,12 +32,12 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app: numalogic-demo
+      app: numalogic-techcon-demo
   template:
     metadata:
       labels:
-        app: numalogic-demo
-        applications.argoproj.io/app-name: snumalogic-demo
+        app: numalogic-techcon-demo
+        applications.argoproj.io/app-name: numalogic-techcon-demo
         asset: Intuit.sandbox.sandbox.demorestapp
         assetAlias: Intuit.sandbox.sandbox.demorestapp
         assetId: '4975369280839883999'
@@ -53,7 +53,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-          image: docker.io/sarabala1979/numalogic-demo:rc1
+          image: docker.io/sarabala1979/numalogic-demo:yellow
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -82,14 +82,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: numalogic-demo-service
-  namespace: sandbox-numalogic-demo
+  namespace: numalogic-techcon-demo
 spec:
   ports:
     - name: service
       port: 8080
       targetPort: 8080
   selector:
-    app: numalogic-demo
+    app: numalogic-techcon-demo
   type: NodePort
 ---
 apiVersion: v1
@@ -98,16 +98,16 @@ metadata:
   labels:
     iks-metric: actuator-prometheus
   name: numalogic-demo-service-metrics
-  namespace: sandbox-numalogic-demo
+  namespace: numalogic-techcon-demo
 spec:
-  clusterIP: 172.20.63.128
+  clusterIP: 172.20.63.130
   clusterIPs:
-    - 172.20.63.128
+    - 172.20.63.130
   ports:
     - name: iks-metric
       port: 8490
       protocol: TCP
       targetPort: 8490
   selector:
-    app: numalogic-demo
+    app: numalogic-techcon-demo
   type: ClusterIP
