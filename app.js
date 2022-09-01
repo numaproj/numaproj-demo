@@ -31,10 +31,11 @@ class Particle {
         this.y += this.vy * duration;
     }
 
-    draw(context) {
-        const img = document.createElement("img");
-        img.src = this.colorMap[this.color]
-        context.drawImage(img, this.x, this.y, 70, 70);
+    draw(context, imageCache) {
+        // const img = document.createElement("img");
+        const img = imageCache.getImages().find(i => i.name === this.color);
+        // img.src = this.colorMap[this.color]
+        context.drawImage(img.img, this.x, this.y, 70, 70);
         if (this.statusCode == 500) {
             // context.lineWidth = 5;
             // context.strokeStyle = "black";
@@ -177,6 +178,7 @@ export class App {
         var sendTime = (new Date()).getTime();
         fetch('./color', {
             method: "POST",
+            keepalive: false,
             body: JSON.stringify(this.sliders.GetValues()),
         })
         .then(function(res) {
@@ -196,7 +198,7 @@ export class App {
         return [...this.particles, this.chart];
     }
 
-    run() {
+    run(imageCache) {
         const context = this.canvas.getContext('2d');
         let prevDate = new Date();
 
@@ -206,17 +208,18 @@ export class App {
             this.getObjects().forEach((obj) => obj.tick && obj.tick(duration));
             prevDate = nextPrevDate;
 
-            const img = document.createElement("img");
-            img.src = "background.png"
-            // context.fillStyle = 'rgba(39,12,83,0.8)';
+            const img = imageCache.getImages().find(i => i.name === 'background');
+            // const img = document.createElement("img");
+            // img.src = "background.png"
+            // context.fillStyle = 'rgba(39,12,83,0.5)';
             // context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            context.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+            context.drawImage(img.img, 0, 0, this.canvas.width, this.canvas.height);
 
-            this.getObjects().forEach((obj) => obj.draw(context));
+            this.getObjects().forEach((obj) => obj.draw(context, imageCache));
         }.bind(this);
 
-        setInterval(draw, 20);
-        setInterval(this.addParticle.bind(this), 100);
+        setInterval(draw, 10);
+        setInterval(this.addParticle.bind(this), 300);
         draw();
     }
 }
@@ -226,23 +229,29 @@ export class Color {
         this.color = color;
         this.isSelected = false;
 
-        // http://localhost:8080 to test
-        const request = new XMLHttpRequest();
-        request.open('GET', './env.js', false);  // `false` makes the request synchronous
-        request.send(null);
+        const reload = () => {
+            console.log("calling reload")
+            // http://localhost:8080 to test
+            const request = new XMLHttpRequest();
+            request.open('GET', './env.js' + '?nocache=' + (new Date()).getTime(), false);  // `false` makes the request synchronous
+            request.send(null);
 
-        if (request.status === 200) {
-            const str = request.responseText
-            const jsonObj = JSON.parse(str.replace(new RegExp(/const ENV_.*?=/),''))
-            this.return500 = jsonObj.errorRate ? jsonObj.errorRate: 0;
-            this.delayPercent = 100;
-            this.delayLength = jsonObj.latency ? jsonObj.latency: 0;
+            if (request.status === 200) {
+                const str = request.responseText
+                const jsonObj = JSON.parse(str.replace(new RegExp(/const ENV_.*?=/), ''))
+                this.return500 = jsonObj.errorRate ? jsonObj.errorRate : 0;
+                this.delayPercent = 100;
+                this.delayLength = jsonObj.latency ? jsonObj.latency : 0;
+            } else {
+                this.return500 = 0
+                this.delayPercent = 0
+                this.delayLength = 0
+            }
+            // console.log(this.return500)
         }
-        else {
-            this.return500 = 0
-            this.delayPercent = 0
-            this.delayLength = 0
-        }
+
+        // setInterval(reload, 500);
+        reload();
 
         this.colorMap = {
             "blue": "#7719D6",
