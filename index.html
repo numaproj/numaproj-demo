@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" type="text/css" href="main.css">
-    <title>ArgoCD Observability</title>
+    <title>Argo Rollouts</title>
 </head>
 <body>
 <div>
@@ -44,6 +44,7 @@
 </body>
 <script type="module">
   import {App} from './app.js';
+  import createImageCache from './createImageCache.js';
 
   const canvas = document.createElement("canvas");
   document.body.appendChild(canvas);
@@ -55,7 +56,19 @@
     canvas.height = window.innerHeight;
   });
 
-  new App(canvas).run();
+  let imageCache = createImageCache();
+  const dict = {
+    background: './background.png',
+    yellow: "./yellow.png",
+    blue: "./purple.png",
+    darkblue: "./purplesick.png",
+    darkyellow: "./yellowsick.png",
+  }
+  imageCache.loadImages(dict);
+  imageCache.imagesOnload(() => {
+    console.log('All images are loaded!')
+    new App(canvas).run(imageCache);
+  })
 </script>
 
 </html>
