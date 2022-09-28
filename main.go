@@ -226,11 +226,15 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	statusCode := http.StatusOK
+	errorRate := envErrorRate
+	if envErrorRate == 0 {
+		errorRate = 1
+	}
 
 	if colorParams.Return500Probability != nil && *colorParams.Return500Probability > 0 && *colorParams.Return500Probability >= rand.Intn(100) {
 		statusCode = http.StatusInternalServerError
 		totalRequests.WithLabelValues("500", "true").Inc()
-	} else if envErrorRate > 0 && rand.Intn(100) >= envErrorRate {
+	} else if envErrorRate > 0 && rand.Intn(100) < errorRate {
 		statusCode = http.StatusInternalServerError
 		totalRequests.WithLabelValues("500", "true").Inc()
 	} else {
