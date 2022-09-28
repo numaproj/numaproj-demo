@@ -21,17 +21,33 @@ metadata:
     env: demo-usw2-eks
     l1: sandbox
     l2: sandbox
-spec:
-  strategy:
-    canary: #Indicates that the rollout should use the Canary strategy
-      maxSurge: "25%"
-      maxUnavailable: 0
+strategy:
+    canary:
+      analysis:
+        args:
+          - name: ingress
+            value: canary-demo
+          # pod template hash from the latest ReplicaSet
+          - name: stable-hash
+            valueFrom:
+              podTemplateHashValue: Stable
+          - name: canary-hash
+            valueFrom:
+              podTemplateHashValue: Latest
+        # Template options: error-rate-anomaly, latency-anomaly, unified-anomaly
+        templates:
+          - templateName: error-rate
+      canaryService: rollout-demo-app-canary-service
+      stableService: rollout-demo-app-stable-service
       steps:
-        - setWeight: 10
-        - pause:
-            duration: 1h # 1 hour
-        - setWeight: 20
-        - pause: {} # pause indefinitely
+      - setWeight: 20
+      - pause: {}
+      - setWeight: 60
+      - pause:
+          duration: 10
+      - setWeight: 80
+      - pause:
+          duration: 10
   replicas: 6
   revisionHistoryLimit: 3
   selector:
