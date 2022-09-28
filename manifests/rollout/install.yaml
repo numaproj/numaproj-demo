@@ -128,3 +128,31 @@ spec:
   selector:
     app: numalogic-rollout-demo
   type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rollout-demo-app-stable-service
+  namespace: sandbox-rollout-numalogic-demo
+spec:
+  ports:
+    - name: service
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: numalogic-rollout-demo
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rollout-demo-app-canary-service
+  namespace: sandbox-rollout-numalogic-demo
+spec:
+  ports:
+    - name: service
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: numalogic-rollout-demo
+  type: NodePort
