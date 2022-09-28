@@ -96,7 +96,6 @@ metadata:
             requests:
               cpu: 300m
               memory: 500Mi
-  minReadySeconds: 30
 ---
 apiVersion: v1
 kind: Service
