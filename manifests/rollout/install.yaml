@@ -21,7 +21,8 @@ metadata:
     env: demo-usw2-eks
     l1: sandbox
     l2: sandbox
-strategy:
+  replicas: 6
+  strategy:
     canary:
       analysis:
         args:
@@ -36,7 +37,8 @@ strategy:
               podTemplateHashValue: Latest
         # Template options: error-rate-anomaly, latency-anomaly, unified-anomaly
         templates:
-          - templateName: error-rate
+          - templateName: error-rate-anomaly
+          - templateName: latency-anomaly
       canaryService: rollout-demo-app-canary-service
       stableService: rollout-demo-app-stable-service
       steps:
@@ -48,7 +50,6 @@ strategy:
       - setWeight: 80
       - pause:
           duration: 10
-  replicas: 6
   revisionHistoryLimit: 3
   selector:
     matchLabels:
