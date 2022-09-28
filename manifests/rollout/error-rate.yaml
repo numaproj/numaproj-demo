@@ -27,7 +27,7 @@ spec:
       successCondition: result[0] < 0.24
       provider:
         prometheus:
-          address: 'http://prometheus.addon-metricset-ns.svc.cluster.local:9090'
+          address: 'http://prometheus-service.monitoring.svc.cluster.local:8080'
           query: >+
             sum(rate(http_server_requests_seconds_count{namespace="sandbox-rollout-numalogic-demo", rollouts_pod_template_hash="{{args.canary-hash}}",status=~"[4-5].*"}[1m]))
             /
