@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - install.yaml
-  - metric-service.yaml
-  - analysis-template.yaml
   - error-rate.yaml
+#   - error-rate-anomaly.yaml
+#   - latency-anomaly.yaml
+#   - unified-anomaly.yaml
