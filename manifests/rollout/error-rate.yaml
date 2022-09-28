@@ -29,7 +29,4 @@ spec:
         prometheus:
           address: 'http://prometheus-service.monitoring.svc.cluster.local:8080'
           query: >+
-            sum(rate(http_server_requests_seconds_count{namespace="sandbox-rollout-numalogic-demo", rollouts_pod_template_hash="{{args.canary-hash}}",status=~"[4-5].*"}[1m]))
-            /
-            sum(rate(http_server_requests_seconds_count{namespace="sandbox-rollout-numalogic-demo", rollouts_pod_template_hash="{{args.canary-hash}}"}[1m])
-            )
+            namespace_hash_pod_http_server_requests_error_rate{namespace="sandbox-rollout-numalogic-demo", rollouts_pod_template_hash="{{args.canary-hash}}"}
