@@ -21,7 +21,12 @@ metadata:
     env: demo-usw2-eks
     l1: sandbox
     l2: sandbox
+spec:
   replicas: 6
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: numalogic-rollout-demo
   strategy:
     canary:
       analysis:
@@ -49,10 +54,6 @@ metadata:
       - setWeight: 80
       - pause:
           duration: 10
-  revisionHistoryLimit: 3
-  selector:
-    matchLabels:
-      app: numalogic-rollout-demo
   template:
     metadata:
       labels:
