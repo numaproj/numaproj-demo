@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    iks-metric: actuator-prometheus
+  name: rollout-demo-app-service-metrics
+  namespace: sandbox-rollout-demo-app
+spec:
+  clusterIP: 172.20.63.123
+  clusterIPs:
+  - 172.20.63.123
+  ports:
+  - name: iks-metric
+    port: 8490
+    protocol: TCP
+    targetPort: 8490
+  selector:
+    app: rollout-demo-app
+  sessionAffinity: None
+  type: ClusterIP
