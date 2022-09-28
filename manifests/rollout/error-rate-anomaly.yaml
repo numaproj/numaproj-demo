@@ -27,6 +27,6 @@ spec:
       successCondition: result[0] < 3
       provider:
         prometheus:
-          address: 'http://prometheus.addon-metricset-ns.svc.cluster.local:9090'
+          address: 'http://prometheus-service.monitoring.svc.cluster.local:8080'
           query: >+
             namespace_rollout_hash_error_rate_anomaly{namespace="sandbox-rollout-numalogic-demo", hash_id="{{args.canary-hash}}"}
