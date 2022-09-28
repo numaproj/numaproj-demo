@@ -9,7 +9,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
-  name: numalogic-demo-rollout
+  name: numalogic-rollout-demo
   namespace: sandbox-rollout-numalogic-demo
   labels:
     app: numalogic-rollout-demo
