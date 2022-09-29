@@ -12,11 +12,11 @@ spec:
     - name: count
       value: '20'
     - name: interval
-      value: 60s
+      value: 5s
     - name: failure-limit
-      value: '5'
+      value: '3'
     - name: inconclusive-limit
-      value: '5'
+      value: '3'
   metrics:
     - name: error-rate-anomaly
       count: '{{args.count}}'
