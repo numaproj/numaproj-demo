@@ -42,7 +42,7 @@ spec:
               podTemplateHashValue: Latest
         # Template options: error-rate-anomaly, latency-anomaly, unified-anomaly
         templates:
-          - templateName: error-rate
+          - templateName: unified-anomaly
       canaryService: rollout-demo-app-canary-service
       stableService: rollout-demo-app-stable-service
       steps:
