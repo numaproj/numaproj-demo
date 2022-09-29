@@ -8,7 +8,7 @@ spec:
     - name: stable-hash
     - name: canary-hash
     - name: initial-delay
-      value: 120s
+      value: 600s
     - name: count
       value: '20'
     - name: interval
