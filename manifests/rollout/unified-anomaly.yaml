@@ -12,7 +12,7 @@ spec:
     - name: count
       value: '20'
     - name: interval
-      value: 5s
+      value: 30s
     - name: failure-limit
       value: '3'
     - name: inconclusive-limit
