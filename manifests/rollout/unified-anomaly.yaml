@@ -8,11 +8,11 @@ spec:
     - name: stable-hash
     - name: canary-hash
     - name: initial-delay
-      value: 300s
+      value: 60s
     - name: count
       value: '20'
     - name: interval
-      value: 60s
+      value: 30s
     - name: failure-limit
       value: '5'
     - name: inconclusive-limit
