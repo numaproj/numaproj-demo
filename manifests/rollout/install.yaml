@@ -75,7 +75,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: VERSION
-              value: "yellow-error-latency-3"
+              value: "yellow-error-latency-4"
           image: docker.io/sarabala1979/numalogic-demo:yellow-error-latency
           imagePullPolicy: Always
           ports:
