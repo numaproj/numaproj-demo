@@ -4,6 +4,6 @@ kind: Kustomization
 resources:
   - install.yaml
   - error-rate.yaml
-#   - error-rate-anomaly.yaml
-#   - latency-anomaly.yaml
-#   - unified-anomaly.yaml
+  - error-rate-anomaly.yaml
+  - latency-anomaly.yaml
+  - unified-anomaly.yaml
