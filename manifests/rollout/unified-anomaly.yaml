@@ -8,13 +8,13 @@ spec:
     - name: stable-hash
     - name: canary-hash
     - name: initial-delay
-      value: 600s
+      value: 120s
     - name: count
       value: '20'
     - name: interval
-      value: 30s
+      value: 10s
     - name: failure-limit
-      value: '3'
+      value: '5'
     - name: inconclusive-limit
       value: '3'
   metrics:
