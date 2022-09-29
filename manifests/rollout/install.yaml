@@ -43,6 +43,7 @@ spec:
         # Template options: error-rate-anomaly, latency-anomaly, unified-anomaly
         templates:
           - templateName: unified-anomaly
+        startingStep: 1 
       canaryService: rollout-demo-app-canary-service
       stableService: rollout-demo-app-stable-service
       steps:
