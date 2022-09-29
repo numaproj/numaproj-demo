@@ -18,7 +18,7 @@ spec:
     - name: inconclusive-limit
       value: '5'
   metrics:
-    - name: error-rate-anomaly
+    - name: unified-anomaly
       count: '{{args.count}}'
       failureLimit: '{{args.failure-limit}}'
       inconclusiveLimit: '{{args.inconclusive-limit}}'
