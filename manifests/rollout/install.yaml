@@ -75,8 +75,8 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: VERSION
-              value: "yellow-1"
-          image: docker.io/sarabala1979/numalogic-demo:yellow
+              value: "yellow-error"
+          image: docker.io/sarabala1979/numalogic-demo:yellow-error
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
