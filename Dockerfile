@@ -21,5 +21,8 @@ ARG ERROR_RATE
 ENV ERROR_RATE=${ERROR_RATE}
 ARG LATENCY
 ENV LATENCY=${LATENCY}
-RUN echo "const ENV_${COLOR}={\"latency\": \"${LATENCY}\",\"errorRate\": \"${ERROR_RATE}\" }" > env.js
+ARG SLIDER
+ENV SLIDER=${SLIDER}
+
+RUN echo "const ENV_${COLOR}={\"latency\": \"${LATENCY}\",\"errorRate\": \"${ERROR_RATE}\",\"slider\": \"${SLIDER}\" }" > env.js
 ENTRYPOINT [ "/numalogic-demo" ]

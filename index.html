@@ -9,17 +9,18 @@
 </head>
 <body>
 <div>
-    <div style="display: none">
+    <div style="display: none" id="version-list">
         <h3 id="currentColor" style="text-align: center">Color</h3>
         <label>Latency Seconds:</label>
         <output class="output-style" name="delayPercentText" id="delayPercentText">0%</output>
         <input type="text" value="0" id="delayPercent">
     </div>
 </div>
-<div class="versionbox">
-    <div class="select-colors" id="availableColors"></div>
-</div>
-<div class="textbox">
+<div class="floatbox" id="params-tuning">
+    <div class="versionbox">
+        <div class="select-colors" id="availableColors"></div>
+    </div>
+    <div class="textbox">
     <div class="slider-group">
         <label>500 Error Rate</label>
         <output class="output-style" name="output500" id="output500">0%</output>
@@ -41,6 +42,7 @@
         </div>
     </div>
 </div>
+</div>
 </body>
 <script type="module">
   import {App} from './app.js';
@@ -59,10 +61,18 @@
   let imageCache = createImageCache();
   const dict = {
     background: './background.png',
-    yellow: "./yellow.png",
-    blue: "./purple.png",
-    darkblue: "./purplesick.png",
-    darkyellow: "./yellowsick.png",
+    yellow0: "./yellow.png",
+    yellow1: "./yellow2.png",
+    yellow2: "./yellow3.png",
+    blue0: "./purple.png",
+    blue1: "./purple1.png",
+    blue2: "./purple2.png",
+    darkblue0: "./purplesick.png",
+    darkblue1: "./purplesick2.png",
+    darkblue2: "./purplesick3.png",
+    darkyellow0: "./yellowsick.png",
+    darkyellow1: "./yellowsick1.png",
+    darkyellow2: "./yellowsick3.png",
   }
   imageCache.loadImages(dict);
   imageCache.imagesOnload(() => {

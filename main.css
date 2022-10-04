@@ -17,18 +17,25 @@ html, body {
     width: 150px;
 }
 
-.versionbox {
-    z-index: 1;
+.floatbox {
     position: absolute;
     bottom: 48px;
-    left: 10em;
+    left: 200px;
+    display: flex;
+    width: 80%;
+    justify-content: center;
+}
+
+.versionbox {
+    position: relative;
+    bottom: -120px;
 }
 
 .textbox {
     z-index: 1;
-    position: absolute;
-    bottom: 2em;
-    right: 6em;
+    position: relative;
+    bottom: -20px;
+    /* right: 6em; */
     display: flex;
     flex-direction: row;
 }
