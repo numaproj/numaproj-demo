@@ -77,7 +77,7 @@ spec:
                   fieldPath: metadata.namespace
             - name: VERSION
               value: "yellow"
-          image: quay.io/numaio/numalogic-demo:newblue
+          image: quay.io/numaio/numalogic-demo:puffy
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
