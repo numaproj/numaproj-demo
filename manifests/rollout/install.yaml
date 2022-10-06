@@ -76,8 +76,8 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: VERSION
-              value: "puffy__error"
-          image: quay.io/numaio/numalogic-demo:puffyerror
+              value: "octo"
+          image: quay.io/numaio/numalogic-demo:octo
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
