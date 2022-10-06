@@ -76,7 +76,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: VERSION
-              value: "puffy_error"
+              value: "puffy__error"
           image: quay.io/numaio/numalogic-demo:puffyerror
           imagePullPolicy: Always
           ports:
