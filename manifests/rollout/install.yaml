@@ -76,8 +76,8 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: VERSION
-              value: "octoerrrrrrr"
-          image: quay.io/numaio/numalogic-demo:octoerror
+              value: "octoerrrrrrrr"
+          image: quay.io/numaio/numalogic-demo:octoerrorlatency
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
