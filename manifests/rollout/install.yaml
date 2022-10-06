@@ -76,7 +76,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: VERSION
-              value: "octo_error1"
+              value: "octoerrrrorrrr"
           image: quay.io/numaio/numalogic-demo:octoerror
           imagePullPolicy: Always
           ports:
