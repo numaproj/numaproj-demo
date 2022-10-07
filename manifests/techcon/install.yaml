@@ -6,8 +6,8 @@ spec:
   finalizers:
     - kubernetes
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: numalogic-demo-deployment
   namespace: sandbox-numalogic-techcon-demo
@@ -22,17 +22,39 @@ metadata:
     l1: sandbox
     l2: sandbox
 spec:
-  progressDeadlineSeconds: 600
   replicas: 6
-  revisionHistoryLimit: 2
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app: numalogic-techcon-demo
+  strategy:
+    canary:
+      analysis:
+        args:
+          - name: ingress
+            value: canary-demo
+          # pod template hash from the latest ReplicaSet
+          - name: stable-hash
+            valueFrom:
+              podTemplateHashValue: Stable
+          - name: canary-hash
+            valueFrom:
+              podTemplateHashValue: Latest
+        # Template options: error-rate-anomaly, latency-anomaly, unified-anomaly
+        templates:
+          - templateName: unified-anomaly
+        startingStep: 1
+      canaryService: rollout-demo-app-canary-service
+      stableService: rollout-demo-app-stable-service
+      steps:
+        - setWeight: 40
+        - pause: {}
+        - setWeight: 60
+        - pause:
+            duration: 10
+        - setWeight: 80
+        - pause:
+            duration: 10
   template:
     metadata:
       labels:
@@ -111,3 +133,31 @@ spec:
   selector:
     app: numalogic-techcon-demo
   type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rollout-demo-app-stable-service
+  namespace: sandbox-numalogic-techcon-demo
+spec:
+  ports:
+    - name: service
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: numalogic-techcon-demo
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rollout-demo-app-canary-service
+  namespace: sandbox-numalogic-techcon-demo
+spec:
+  ports:
+    - name: service
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: numalogic-techcon-demo
+  type: NodePort

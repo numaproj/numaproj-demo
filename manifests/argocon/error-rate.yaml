@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: error-rate
+  namespace: sandbox-rollout-numalogic-demo
+spec:
+  args:
+    - name: stable-hash
+    - name: canary-hash
+    - name: initial-delay
+      value: 30s
+    - name: count
+      value: '10'
+    - name: interval
+      value: 60s
+    - name: failure-limit
+      value: '1'
+    - name: inconclusive-limit
+      value: '1'  
+  metrics:
+    - name: error-rate
+      count: '{{args.count}}'
+      failureLimit: '{{args.failure-limit}}'
+      inconclusiveLimit: '{{args.inconclusive-limit}}'
+      initialDelay: '{{args.initial-delay}}'
+      interval: '{{args.interval}}'
+      successCondition: result[0] < 0.24
+      provider:
+        prometheus:
+          address: 'http://prometheus-service.monitoring.svc.cluster.local:8080'
+          query: >+
+            namespace_hash_pod_http_server_requests_error_rate{namespace="sandbox-argocon-numalogic-demo", rollouts_pod_template_hash="{{args.canary-hash}}"}
