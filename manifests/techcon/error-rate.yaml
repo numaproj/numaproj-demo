@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
   name: error-rate
-  namespace: sandbox-rollout-numalogic-demo
+  namespace: sandbox-numalogic-techcon-demo
 spec:
   args:
     - name: stable-hash

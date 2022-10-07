@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
   name: unified-anomaly
-  namespace: sandbox-rollout-numalogic-demo
+  namespace: sandbox-argocon-numalogic-demo
 spec:
   args:
     - name: stable-hash
