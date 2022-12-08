@@ -28,7 +28,7 @@ build:
 .PHONY: image
 image:
 	docker build --build-arg COLOR=${COLOR}  --build-arg SLIDER=${SLIDER} --build-arg ERROR_RATE=${ERROR_RATE} --build-arg LATENCY=${LATENCY} -t $(IMAGE_PREFIX)numalogic-demo:${IMAGE_TAG} .
-	@if [ "$(DOCKER_PUSH)" = "true" ] ; then docker push $(IMAGE_PREFIX)rollouts-demo:$(IMAGE_TAG) ; fi
+	@if [ "$(DOCKER_PUSH)" = "true" ] ; then docker push $(IMAGE_PREFIX)numalogic-demo:$(IMAGE_TAG) ; fi
 
 .PHONY: load-tester-image
 load-tester-image:
@@ -38,7 +38,7 @@ load-tester-image:
 
 .PHONY: run
 run:
-	go run main.go
+	go run main.go tls.go
 
 .PHONY: lint
 lint:
@@ -50,4 +50,4 @@ release:
 
 .PHONY: clean
 clean:
-	rm -f rollouts-demo
+	rm -f numalogic-demo
