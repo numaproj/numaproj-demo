@@ -27,11 +27,11 @@ const (
 	// the Pod IP being removed from the Service's Endpoint list, which prevents traffic from being
 	// directed to terminated pods, which otherwise would cause timeout errors and/or request delays.
 	// See: https://github.com/kubernetes/ingress-nginx/issues/3335#issuecomment-434970950
-	defaultTerminationDelay = 10
+	defaultTerminationDelay = 1
 )
 
 var (
-	fish         = os.Getenv("COLOR")
+	fish         = os.Getenv("FISH")
 	envLatency   float64
 	envErrorRate int
 )
@@ -79,7 +79,6 @@ func main() {
 	)
 	flag.StringVar(&listenAddr, "listen-addr", ":8080", "server listen address")
 	flag.IntVar(&terminationDelay, "termination-delay", defaultTerminationDelay, "termination delay in seconds")
-	flag.StringVar(&numCPUBurn, "cpu-burn", "", "burn specified number of cpus (number or 'all')")
 	flag.BoolVar(&tls, "tls", true, "Enable TLS (with self-signed certificate)")
 	flag.Parse()
 
@@ -89,11 +88,12 @@ func main() {
 
 	router := http.NewServeMux()
 	router.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
-	router.HandleFunc("/color", getColor)
-	router.HandleFunc("/envs", getEnv)
+
+	router.HandleFunc("/fish", getFish)
 	router.Handle("/metrics", promhttp.Handler())
 	router.Handle("/actuator/prometheus", promhttp.Handler())
 	router.Handle("/healthz", promhttp.Handler())
+
 	metricRouter := http.NewServeMux()
 	metricRouter.Handle("/metrics", promhttp.Handler())
 	metricRouter.Handle("/actuator/prometheus", promhttp.Handler())
@@ -105,6 +105,7 @@ func main() {
 		Addr:    ":8490",
 		Handler: metricRouter,
 	}
+
 	if tls {
 		tlsConfig, err := CreateServerTLSConfig("", "", []string{"localhost", "numalogic-demo", "127.0.0.1", "*"})
 		if err != nil {
@@ -164,14 +165,7 @@ type fishParams struct {
 	Return500Probability *int    `json:"return500,omitempty"`
 }
 
-func getEnv(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/json; charset=utf-8")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	jsonStr := fmt.Sprintf("{\"envLatency\": %f, \"envErrorRate\": %d }", envLatency, envErrorRate)
-	w.Write([]byte(jsonStr))
-}
-
-func getColor(w http.ResponseWriter, r *http.Request) {
+func getFish(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -191,7 +185,7 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
+	//default octo fish
 	if fish == "" {
 		fish = "octo"
 	}
@@ -233,15 +227,15 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 	}
 	duration := time.Now().Sub(start).Seconds()
 	totalRequestsLatency.WithLabelValues(fmt.Sprintf("%d", statusCode), "true").Set(duration)
-	printColor(fish, w, statusCode)
+	printFish(fish, w, statusCode)
 	log.Printf("%d %f - %s%s\n", statusCode, duration, fish, delayLengthStr)
 }
 
-func printColor(colorToPrint string, w http.ResponseWriter, statusCode int) {
+func printFish(fishToPrint string, w http.ResponseWriter, statusCode int) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(statusCode)
-	fmt.Fprintf(w, "\"%s\"", colorToPrint)
+	fmt.Fprintf(w, "\"%s\"", fishToPrint)
 }
 
 func cpuBurn(done <-chan bool, numCPUBurn string) {

@@ -188,22 +188,22 @@ export class App {
     // http://localhost:8080 to test
     addParticle() {
         var sendTime = (new Date()).getTime();
-        fetch('./color', {
+        fetch('./fish', {
             method: "POST",
             keepalive: false,
             body: JSON.stringify(this.sliders.GetValues()),
         })
         .then(function(res) {
-           return res.json().then(color => ({ color, res }))
+           return res.json().then(fish => ({ fish, res }))
         }).then((function(res) {
-            res.colorImg = `${res.color}${Math.floor(Math.random() * 4)}`
+            res.fishImg = `${res.fish}${Math.floor(Math.random() * 4)}`
             var receiveTime = (new Date()).getTime();
             var responseTimeMs = receiveTime - sendTime;
             let startingY = (this.canvas.height - this.chart.height - ParticleMaxSize - ArgoImageSize) * Math.random() + ArgoImageSize
-            this.particles.unshift(new Particle(this.canvas.width, startingY, res.colorImg, res.res.status, responseTimeMs));
+            this.particles.unshift(new Particle(this.canvas.width, startingY, res.fishImg, res.res.status, responseTimeMs));
             this.particles = this.particles.slice(0, 200);
-            this.chart.addColor(res.color, res.res.status);
-            this.sliders.addColor(res.color)
+            this.chart.addColor(res.fish, res.res.status);
+            this.sliders.addColor(res.fish)
         }).bind(this));
     }
 
@@ -313,7 +313,7 @@ export class Color {
 
     GetSliderValues() {
         return {
-            "color": this.color,
+            "fish": this.color,
             "return500": parseInt(this.return500),
             "delayPercent": parseInt(this.delayPercent),
             "delayLength": parseInt(this.delayLength) // parseInt(this.delayPercent) > 0 ? 1 : 0 // parseInt(this.delayLength)

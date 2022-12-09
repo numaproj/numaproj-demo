@@ -60,19 +60,21 @@
 
   let imageCache = createImageCache();
   const dict = {
-    background: './background.png',
-    yellow0: "./yellow.png",
-    yellow1: "./yellow2.png",
-    yellow2: "./yellow3.png",
-    octo0: "./purple.png",
-    blue1: "./purple1.png",
-    blue2: "./purple2.png",
-    darkblue0: "./purplesick.png",
-    darkblue1: "./purplesick2.png",
-    darkblue2: "./purplesick3.png",
-    darkyellow0: "./yellowsick.png",
-    darkyellow1: "./yellowsick1.png",
-    darkyellow2: "./yellowsick3.png",
+    background: './image1/background.png',
+    puffy0: "./image1/puffy.png",
+      puffy1: "./image1/puffy1.png",
+    puffy2: "./image1/puffy2.png",
+    octo0: "./image1/octo.png",
+    octo1: "./image1/octo1.png",
+      octo2: "./image1/octo2.png",
+
+    darkpuffy0: "./image1/puffysick.png",
+    darkpuffy1: "./image1/puffysick1.png",
+    darkpuffy2: "./image1/puffysick2.png",
+
+    darkocto0: "./image1/octosick.png",
+    darkocto1: "./image1/octosick1.png",
+    darkocto2: "./image1/octosick2.png",
   }
   imageCache.loadImages(dict);
   imageCache.imagesOnload(() => {
