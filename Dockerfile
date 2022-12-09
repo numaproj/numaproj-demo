@@ -9,7 +9,7 @@ COPY *.png ./
 COPY *.js ./
 COPY *.ico ./
 COPY *.css ./
-COPY assets/images/* ./
+COPY ui/assets/images/* ./
 
 COPY --from=build /go/src/app/numalogic-demo /numalogic-demo
 

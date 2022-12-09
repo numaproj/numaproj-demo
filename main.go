@@ -85,7 +85,7 @@ func main() {
 	prometheus.Register(totalRequestsLatency)
 
 	router := http.NewServeMux()
-	router.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
+	router.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./ui"))))
 
 	router.HandleFunc("/fish", getFish)
 	router.Handle("/metrics", promhttp.Handler())
