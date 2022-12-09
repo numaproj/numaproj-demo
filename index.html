@@ -9,8 +9,8 @@
 </head>
 <body>
 <div>
-    <div style="display: none" id="version-list">
-        <h3 id="currentColor" style="text-align: center">Color</h3>
+    <div style="display: none;" id="version-list">
+        <h3 id="currentFish" style="text-align: center">Fish</h3>
         <label>Latency Seconds:</label>
         <output class="output-style" name="delayPercentText" id="delayPercentText">0%</output>
         <input type="text" value="0" id="delayPercent">
@@ -18,7 +18,7 @@
 </div>
 <div class="floatbox" id="params-tuning">
     <div class="versionbox">
-        <div class="select-colors" id="availableColors"></div>
+        <div class="select-fishes" id="availableFishes"></div>
     </div>
     <div class="textbox">
     <div class="slider-group">
@@ -47,6 +47,7 @@
 <script type="module">
   import {App} from './app.js';
   import createImageCache from './createImageCache.js';
+  import {FISH_IMAGE_MAP} from "./fishConfig.js";
 
   const canvas = document.createElement("canvas");
   document.body.appendChild(canvas);
@@ -59,24 +60,8 @@
   });
 
   let imageCache = createImageCache();
-  const dict = {
-    background: './image1/background.png',
-    puffy0: "./image1/puffy.png",
-      puffy1: "./image1/puffy1.png",
-    puffy2: "./image1/puffy2.png",
-    octo0: "./image1/octo.png",
-    octo1: "./image1/octo1.png",
-      octo2: "./image1/octo2.png",
 
-    darkpuffy0: "./image1/puffysick.png",
-    darkpuffy1: "./image1/puffysick1.png",
-    darkpuffy2: "./image1/puffysick2.png",
-
-    darkocto0: "./image1/octosick.png",
-    darkocto1: "./image1/octosick1.png",
-    darkocto2: "./image1/octosick2.png",
-  }
-  imageCache.loadImages(dict);
+  imageCache.loadImages(FISH_IMAGE_MAP);
   imageCache.imagesOnload(() => {
     console.log('All images are loaded!')
     new App(canvas).run(imageCache);

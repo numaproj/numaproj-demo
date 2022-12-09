@@ -24,6 +24,7 @@ html, body {
     display: flex;
     width: 80%;
     justify-content: center;
+    min-width: 1000px;
 }
 
 .versionbox {
@@ -71,11 +72,11 @@ input#delayLength {
     width: 190px;
 }
 
-.currentColor {
+.currentFish {
     text-align: center
 }
 
-.select-colors {
+.select-fishes {
     position: relative;
     display: flex;
 }
@@ -101,7 +102,7 @@ input#delayLength {
     color: #DFDDDD;
 }
 
-.availableColors {
+.availableFishes {
     display: table;
 
 }
