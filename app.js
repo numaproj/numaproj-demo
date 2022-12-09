@@ -145,7 +145,7 @@ class Chart {
 }
 
 let ParticleMaxSize=200
-let ArgoImageSize=100
+let NumaImageSize=100
 
 export class App {
     constructor(canvas) {
@@ -168,7 +168,7 @@ export class App {
             res.fishImg = `${res.fish}${Math.floor(Math.random() * 4)}`
             let receiveTime = (new Date()).getTime();
             let responseTimeMs = receiveTime - sendTime;
-            let startingY = (this.canvas.height - this.chart.height - ParticleMaxSize - ArgoImageSize) * Math.random() + ArgoImageSize
+            let startingY = (this.canvas.height - this.chart.height - ParticleMaxSize - NumaImageSize) * Math.random() + NumaImageSize
             this.particles.unshift(new Particle(this.canvas.width, startingY, res.fishImg, res.res.status, responseTimeMs));
             this.particles = this.particles.slice(0, 200);
             // disabling the chart
