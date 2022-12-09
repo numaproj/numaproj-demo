@@ -31,15 +31,7 @@ const (
 )
 
 var (
-	color  = os.Getenv("COLOR")
-	colors = []string{
-		"red",
-		"orange",
-		"yellow",
-		"green",
-		"blue",
-		"purple",
-	}
+	fish         = os.Getenv("COLOR")
 	envLatency   float64
 	envErrorRate int
 )
@@ -166,8 +158,8 @@ func main() {
 	log.Println("Server stopped")
 }
 
-type colorParameters struct {
-	Color                string  `json:"color"`
+type fishParams struct {
+	Fish                 string  `json:"fish"`
 	DelayLength          float64 `json:"delayLength,omitempty"`
 	Return500Probability *int    `json:"return500,omitempty"`
 }
@@ -189,7 +181,7 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request []colorParameters
+	var request []fishParams
 	if len(requestBody) > 0 && string(requestBody) != `"[]"` {
 		err = json.Unmarshal(requestBody, &request)
 		if err != nil {
@@ -200,15 +192,14 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	colorToReturn := randomColor()
-	if color != "" {
-		colorToReturn = color
+	if fish == "" {
+		fish = "octo"
 	}
 
-	var colorParams colorParameters
+	var colorParams fishParams
 	for i := range request {
 		cp := request[i]
-		if cp.Color == colorToReturn {
+		if cp.Fish == fish {
 			colorParams = cp
 		}
 	}
@@ -242,8 +233,8 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 	}
 	duration := time.Now().Sub(start).Seconds()
 	totalRequestsLatency.WithLabelValues(fmt.Sprintf("%d", statusCode), "true").Set(duration)
-	printColor(colorToReturn, w, statusCode)
-	log.Printf("%d %f - %s%s\n", statusCode, duration, colorToReturn, delayLengthStr)
+	printColor(fish, w, statusCode)
+	log.Printf("%d %f - %s%s\n", statusCode, duration, fish, delayLengthStr)
 }
 
 func printColor(colorToPrint string, w http.ResponseWriter, statusCode int) {
@@ -251,10 +242,6 @@ func printColor(colorToPrint string, w http.ResponseWriter, statusCode int) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(statusCode)
 	fmt.Fprintf(w, "\"%s\"", colorToPrint)
-}
-
-func randomColor() string {
-	return colors[rand.Int()%len(colors)]
 }
 
 func cpuBurn(done <-chan bool, numCPUBurn string) {
