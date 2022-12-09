@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"strconv"
 	"syscall"
 	"time"
@@ -74,7 +73,6 @@ func main() {
 	var (
 		listenAddr       string
 		terminationDelay int
-		numCPUBurn       string
 		tls              bool
 	)
 	flag.StringVar(&listenAddr, "listen-addr", ":8080", "server listen address")
@@ -139,8 +137,6 @@ func main() {
 		}
 		close(done)
 	}()
-
-	cpuBurn(done, numCPUBurn)
 	log.Printf("Started server on %s", listenAddr)
 	var err error
 	if tls {
@@ -190,18 +186,18 @@ func getFish(w http.ResponseWriter, r *http.Request) {
 		fish = "octo"
 	}
 
-	var colorParams fishParams
+	var requestParams fishParams
 	for i := range request {
 		cp := request[i]
 		if cp.Fish == fish {
-			colorParams = cp
+			requestParams = cp
 		}
 	}
 
 	var delayLength float64
 	var delayLengthStr string
-	if colorParams.DelayLength > 0 {
-		delayLength = colorParams.DelayLength
+	if requestParams.DelayLength > 0 {
+		delayLength = requestParams.DelayLength
 	} else if envLatency > 0 {
 		delayLength = envLatency
 	}
@@ -216,7 +212,7 @@ func getFish(w http.ResponseWriter, r *http.Request) {
 		errorRate = 1
 	}
 
-	if colorParams.Return500Probability != nil && *colorParams.Return500Probability > 0 && *colorParams.Return500Probability >= rand.Intn(100) {
+	if requestParams.Return500Probability != nil && *requestParams.Return500Probability > 0 && *requestParams.Return500Probability >= rand.Intn(100) {
 		statusCode = http.StatusInternalServerError
 		totalRequests.WithLabelValues("500", "true").Inc()
 	} else if envErrorRate > 0 && rand.Intn(100) < errorRate {
@@ -236,36 +232,4 @@ func printFish(fishToPrint string, w http.ResponseWriter, statusCode int) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(statusCode)
 	fmt.Fprintf(w, "\"%s\"", fishToPrint)
-}
-
-func cpuBurn(done <-chan bool, numCPUBurn string) {
-	if numCPUBurn == "" {
-		return
-	}
-	var numCPU int
-	if numCPUBurn == "all" {
-		numCPU = runtime.NumCPU()
-	} else {
-		num, err := strconv.Atoi(numCPUBurn)
-		if err != nil {
-			log.Fatal(err)
-		}
-		numCPU = num
-	}
-	log.Printf("Burning %d CPUs", numCPU)
-	noop := func() {}
-	for i := 0; i < numCPU; i++ {
-		go func(cpu int) {
-			log.Printf("Burning CPU #%d", cpu)
-			for {
-				select {
-				case <-done:
-					log.Printf("Stopped CPU burn #%d", cpu)
-					return
-				default:
-					noop()
-				}
-			}
-		}(i)
-	}
 }
