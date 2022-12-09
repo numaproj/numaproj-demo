@@ -9,14 +9,16 @@ COPY *.png ./
 COPY *.js ./
 COPY *.ico ./
 COPY *.css ./
-#COPY images/* ./
+
+ADD  ui ./
+COPY ui ./ui
 
 COPY --from=build /go/src/app/numalogic-demo /numalogic-demo
 
 
 
-ARG COLOR
-ENV COLOR=${COLOR}
+ARG FISH
+ENV FISH=${FISH}
 ARG ERROR_RATE
 ENV ERROR_RATE=${ERROR_RATE}
 ARG LATENCY
@@ -24,5 +26,5 @@ ENV LATENCY=${LATENCY}
 ARG SLIDER
 ENV SLIDER=${SLIDER}
 
-RUN echo "const ENV_${COLOR}={\"latency\": \"${LATENCY}\",\"errorRate\": \"${ERROR_RATE}\",\"slider\": \"${SLIDER}\" }" > env.js
+RUN echo "const ENV_${FISH}={\"latency\": \"${LATENCY}\",\"errorRate\": \"${ERROR_RATE}\",\"slider\": \"${SLIDER}\" }" > env.js
 ENTRYPOINT [ "/numalogic-demo" ]

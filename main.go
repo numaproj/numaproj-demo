@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"strconv"
 	"syscall"
 	"time"
@@ -27,19 +26,11 @@ const (
 	// the Pod IP being removed from the Service's Endpoint list, which prevents traffic from being
 	// directed to terminated pods, which otherwise would cause timeout errors and/or request delays.
 	// See: https://github.com/kubernetes/ingress-nginx/issues/3335#issuecomment-434970950
-	defaultTerminationDelay = 10
+	defaultTerminationDelay = 1
 )
 
 var (
-	color  = os.Getenv("COLOR")
-	colors = []string{
-		"red",
-		"orange",
-		"yellow",
-		"green",
-		"blue",
-		"purple",
-	}
+	fish         = os.Getenv("FISH")
 	envLatency   float64
 	envErrorRate int
 )
@@ -82,12 +73,10 @@ func main() {
 	var (
 		listenAddr       string
 		terminationDelay int
-		numCPUBurn       string
 		tls              bool
 	)
 	flag.StringVar(&listenAddr, "listen-addr", ":8080", "server listen address")
 	flag.IntVar(&terminationDelay, "termination-delay", defaultTerminationDelay, "termination delay in seconds")
-	flag.StringVar(&numCPUBurn, "cpu-burn", "", "burn specified number of cpus (number or 'all')")
 	flag.BoolVar(&tls, "tls", true, "Enable TLS (with self-signed certificate)")
 	flag.Parse()
 
@@ -96,12 +85,13 @@ func main() {
 	prometheus.Register(totalRequestsLatency)
 
 	router := http.NewServeMux()
-	router.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./"))))
-	router.HandleFunc("/color", getColor)
-	router.HandleFunc("/envs", getEnv)
+	router.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./ui"))))
+
+	router.HandleFunc("/fish", getFish)
 	router.Handle("/metrics", promhttp.Handler())
 	router.Handle("/actuator/prometheus", promhttp.Handler())
 	router.Handle("/healthz", promhttp.Handler())
+
 	metricRouter := http.NewServeMux()
 	metricRouter.Handle("/metrics", promhttp.Handler())
 	metricRouter.Handle("/actuator/prometheus", promhttp.Handler())
@@ -113,6 +103,7 @@ func main() {
 		Addr:    ":8490",
 		Handler: metricRouter,
 	}
+
 	if tls {
 		tlsConfig, err := CreateServerTLSConfig("", "", []string{"localhost", "numalogic-demo", "127.0.0.1", "*"})
 		if err != nil {
@@ -146,8 +137,6 @@ func main() {
 		}
 		close(done)
 	}()
-
-	cpuBurn(done, numCPUBurn)
 	log.Printf("Started server on %s", listenAddr)
 	var err error
 	if tls {
@@ -166,20 +155,13 @@ func main() {
 	log.Println("Server stopped")
 }
 
-type colorParameters struct {
-	Color                string  `json:"color"`
+type fishParams struct {
+	Fish                 string  `json:"fish"`
 	DelayLength          float64 `json:"delayLength,omitempty"`
 	Return500Probability *int    `json:"return500,omitempty"`
 }
 
-func getEnv(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/json; charset=utf-8")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	jsonStr := fmt.Sprintf("{\"envLatency\": %f, \"envErrorRate\": %d }", envLatency, envErrorRate)
-	w.Write([]byte(jsonStr))
-}
-
-func getColor(w http.ResponseWriter, r *http.Request) {
+func getFish(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -189,7 +171,7 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request []colorParameters
+	var request []fishParams
 	if len(requestBody) > 0 && string(requestBody) != `"[]"` {
 		err = json.Unmarshal(requestBody, &request)
 		if err != nil {
@@ -199,24 +181,23 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	colorToReturn := randomColor()
-	if color != "" {
-		colorToReturn = color
+	//default octo fish
+	if fish == "" {
+		fish = "octo"
 	}
 
-	var colorParams colorParameters
+	var requestParams fishParams
 	for i := range request {
 		cp := request[i]
-		if cp.Color == colorToReturn {
-			colorParams = cp
+		if cp.Fish == fish {
+			requestParams = cp
 		}
 	}
 
 	var delayLength float64
 	var delayLengthStr string
-	if colorParams.DelayLength > 0 {
-		delayLength = colorParams.DelayLength
+	if requestParams.DelayLength > 0 {
+		delayLength = requestParams.DelayLength
 	} else if envLatency > 0 {
 		delayLength = envLatency
 	}
@@ -231,7 +212,7 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 		errorRate = 1
 	}
 
-	if colorParams.Return500Probability != nil && *colorParams.Return500Probability > 0 && *colorParams.Return500Probability >= rand.Intn(100) {
+	if requestParams.Return500Probability != nil && *requestParams.Return500Probability > 0 && *requestParams.Return500Probability >= rand.Intn(100) {
 		statusCode = http.StatusInternalServerError
 		totalRequests.WithLabelValues("500", "true").Inc()
 	} else if envErrorRate > 0 && rand.Intn(100) < errorRate {
@@ -242,49 +223,13 @@ func getColor(w http.ResponseWriter, r *http.Request) {
 	}
 	duration := time.Now().Sub(start).Seconds()
 	totalRequestsLatency.WithLabelValues(fmt.Sprintf("%d", statusCode), "true").Set(duration)
-	printColor(colorToReturn, w, statusCode)
-	log.Printf("%d %f - %s%s\n", statusCode, duration, colorToReturn, delayLengthStr)
+	printFish(fish, w, statusCode)
+	log.Printf("%d %f - %s%s\n", statusCode, duration, fish, delayLengthStr)
 }
 
-func printColor(colorToPrint string, w http.ResponseWriter, statusCode int) {
+func printFish(fishToPrint string, w http.ResponseWriter, statusCode int) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(statusCode)
-	fmt.Fprintf(w, "\"%s\"", colorToPrint)
-}
-
-func randomColor() string {
-	return colors[rand.Int()%len(colors)]
-}
-
-func cpuBurn(done <-chan bool, numCPUBurn string) {
-	if numCPUBurn == "" {
-		return
-	}
-	var numCPU int
-	if numCPUBurn == "all" {
-		numCPU = runtime.NumCPU()
-	} else {
-		num, err := strconv.Atoi(numCPUBurn)
-		if err != nil {
-			log.Fatal(err)
-		}
-		numCPU = num
-	}
-	log.Printf("Burning %d CPUs", numCPU)
-	noop := func() {}
-	for i := 0; i < numCPU; i++ {
-		go func(cpu int) {
-			log.Printf("Burning CPU #%d", cpu)
-			for {
-				select {
-				case <-done:
-					log.Printf("Stopped CPU burn #%d", cpu)
-					return
-				default:
-					noop()
-				}
-			}
-		}(i)
-	}
+	fmt.Fprintf(w, "\"%s\"", fishToPrint)
 }

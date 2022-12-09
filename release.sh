@@ -3,16 +3,12 @@
 set -x -e
 
 strings=(
-    "red"
-    "orange"
-    "yellow"
-    "green"
-    "blue"
-    "purple"
+    "octo"
+    "puffy"
 )
 
-for color in "${strings[@]}"; do
-    make image COLOR=${color} DOCKER_PUSH=${DOCKER_PUSH} IMAGE_NAMESPACE=${IMAGE_NAMESPACE}
-    make image COLOR=${color} ERROR_RATE=15 DOCKER_PUSH=${DOCKER_PUSH} IMAGE_NAMESPACE=${IMAGE_NAMESPACE}
-    make image COLOR=${color} LATENCY=2 DOCKER_PUSH=${DOCKER_PUSH} IMAGE_NAMESPACE=${IMAGE_NAMESPACE}
+for fish in "${strings[@]}"; do
+    make image FISH=${fish} DOCKER_PUSH=${DOCKER_PUSH} IMAGE_NAMESPACE=${IMAGE_NAMESPACE}
+    make image FISH=${fish} ERROR_RATE=15 DOCKER_PUSH=${DOCKER_PUSH} IMAGE_NAMESPACE=${IMAGE_NAMESPACE}
+    make image FISH=${fish} LATENCY=2 DOCKER_PUSH=${DOCKER_PUSH} IMAGE_NAMESPACE=${IMAGE_NAMESPACE}
 done
