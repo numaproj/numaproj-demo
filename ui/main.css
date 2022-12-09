@@ -20,16 +20,16 @@ html, body {
 .floatbox {
     position: absolute;
     bottom: 48px;
-    left: 200px;
+    left: 10%;
     display: flex;
     width: 80%;
     justify-content: center;
-    min-width: 1000px;
+    // min-width: 1000px;
 }
 
 .versionbox {
     position: relative;
-    bottom: -120px;
+    bottom: -123px;
 }
 
 .textbox {
@@ -83,7 +83,7 @@ input#delayLength {
 
 .checkbox-style {
     position: relative;
-    left: -56px;
+    // left: -56px;
     top: 4px;
     height: 20px;
     width: 20px;
@@ -98,7 +98,7 @@ input#delayLength {
     font-size: 17px;
     position: relative;
     bottom: -1px;
-    left: -27px;
+    // left: -27px;
     color: #DFDDDD;
 }
 
@@ -133,6 +133,11 @@ input#delayLength {
     -webkit-transition: .2s; /* 0.2 seconds transition on hover */
     transition: opacity .2s;
 
+}
+
+.slider-markers {
+    top: 3px;
+    position: relative;
 }
 
 /* Mouse-over effects */

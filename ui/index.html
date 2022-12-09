@@ -26,20 +26,20 @@
         <label>500 Error Rate</label>
         <output class="output-style" name="output500" id="output500">0%</output>
         <div class="input-group">
-            <label>0%</label>
+            <label class="slider-markers">0%</label>
             <input class="input-style" type="range" min="0" max="100" value="0" class="slider" id="return500"
                    onchange="output500.value = return500.value + '%'">
-            <label>100%</label>
+            <label class="slider-markers">100%</label>
         </div>
     </div>
     <div class="slider-group">
         <label>Latency</label>
         <output class="output-style" name="delayLengthText" id="delayLengthText">0s</output>
         <div class="input-group">
-            <label>0s</label>
+            <label class="slider-markers">0s</label>
             <input class="input-style" type="range" min="0" max="20" value="0" class="slider" id="delayLength"
                    onchange="delayLengthText.value = delayLength.value + 's'">
-            <label>20s</label>
+            <label class="slider-markers">20s</label>
         </div>
     </div>
 </div>

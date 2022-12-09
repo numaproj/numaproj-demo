@@ -239,13 +239,13 @@ export class Fish {
         this.checkBox.value = fish
         const circle = document.createElement('div');
         const text = document.createElement('span');
-        text.innerText = "Version"
+        text.innerText = fish
         text.className = "version-style"
         circle.className = "square " + fish;
         circle.style["background"] = this.colorMap[fish];
         circle.shadowBlur=0;
         this.square.appendChild(this.checkBox)
-        this.square.appendChild(circle)
+        // this.square.appendChild(circle)
         this.square.appendChild(text)
     }
     setIsSelected(isSelected) {
