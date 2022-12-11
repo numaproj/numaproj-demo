@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: sandbox-rollout-numalogic-demo
+  name: rollout-numalogic-demo
 spec:
   finalizers:
     - kubernetes
@@ -10,17 +10,8 @@ apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
   name: numalogic-rollout-demo
-  namespace: sandbox-rollout-numalogic-demo
   labels:
     app: numalogic-rollout-demo
-    app.kubernetes.io/instance: numalogic-rollout-demo
-    applications.argoproj.io/app-name: numalogic-demo
-    assetAlias: Intuit.sandbox.sandbox.numalogicdemo
-    assetId: '4975369280839883999'
-    buildType: maven
-    env: demo-usw2-eks
-    l1: sandbox
-    l2: sandbox
 spec:
   replicas: 6
   revisionHistoryLimit: 1
@@ -59,14 +50,6 @@ spec:
     metadata:
       labels:
         app: numalogic-rollout-demo
-        applications.argoproj.io/app-name: numalogic-rollout-demo
-        asset: Intuit.sandbox.sandbox.demorestapp
-        assetAlias: Intuit.sandbox.sandbox.demorestapp
-        assetId: '4975369280839883999'
-        env: qal
-        istio-injected: 'true'
-        l1: sandbox
-        l2: sandbox
     spec:
       containers:
         - name: app
@@ -77,7 +60,7 @@ spec:
                   fieldPath: metadata.namespace
             - name: VERSION
               value: "octo"
-          image: quay.io/numaio/numalogic-demo:puffyerrorlatency
+          image: quay.io/numaio/numalogic-demo:octo
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -105,7 +88,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: numalogic-demo-service
-  namespace: sandbox-rollout-numalogic-demo
 spec:
   ports:
     - name: service
@@ -121,7 +103,6 @@ metadata:
   labels:
     iks-metric: actuator-prometheus
   name: numalogic-demo-service-metrics
-  namespace: sandbox-rollout-numalogic-demo
 spec:
   ports:
     - name: iks-metric
@@ -136,7 +117,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: rollout-demo-app-stable-service
-  namespace: sandbox-rollout-numalogic-demo
 spec:
   ports:
     - name: service
@@ -150,7 +130,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: rollout-demo-app-canary-service
-  namespace: sandbox-rollout-numalogic-demo
 spec:
   ports:
     - name: service

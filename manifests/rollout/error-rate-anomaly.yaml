@@ -2,7 +2,6 @@ apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
   name: error-rate-anomaly
-  namespace: sandbox-rollout-numalogic-demo
 spec:
   args:
     - name: stable-hash
@@ -29,4 +28,4 @@ spec:
         prometheus:
           address: 'http://prometheus-service.monitoring.svc.cluster.local:8080'
           query: >+
-            namespace_rollout_hash_error_rate_anomaly{namespace="sandbox-rollout-numalogic-demo", hash_id="{{args.canary-hash}}"}
+            namespace_rollout_hash_error_rate_anomaly{namespace="rollout-numalogic-demo", hash_id="{{args.canary-hash}}"}
