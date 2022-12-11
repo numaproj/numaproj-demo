@@ -3,7 +3,7 @@
 This repo contains the AIOPs based [Argo Rollouts](https://github.com/argoproj/argo-rollouts) demo application source code and examples. It demonstrates the
 Anomaly score based canary  analysis deployment strategies and progressive delivery features of Argo Rollouts.
 
-![img](./demo.png)
+![img](ui/assets/images/demo.png)
 
 Before running an example:
 

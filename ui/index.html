@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" style="height:100%">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <title>Numalogic Demo</title>
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.png">
+</head>
+<body>
+<div>
+    <div style="display: none;" id="version-list">
+        <h3 id="currentFish" style="text-align: center">Fish</h3>
+        <label>Latency Seconds:</label>
+        <output class="output-style" name="delayPercentText" id="delayPercentText">0%</output>
+        <input type="text" value="0" id="delayPercent">
+    </div>
+</div>
+<div class="floatbox" id="params-tuning">
+    <div class="versionbox">
+        <div class="select-fishes" id="availableFishes"></div>
+    </div>
+    <div class="textbox">
+    <div class="slider-group">
+        <label>500 Error Rate</label>
+        <output class="output-style" name="output500" id="output500">0%</output>
+        <div class="input-group">
+            <label class="slider-markers">0%</label>
+            <input class="input-style" type="range" min="0" max="100" value="0" class="slider" id="return500"
+                   onchange="output500.value = return500.value + '%'">
+            <label class="slider-markers">100%</label>
+        </div>
+    </div>
+    <div class="slider-group">
+        <label>Latency</label>
+        <output class="output-style" name="delayLengthText" id="delayLengthText">0s</output>
+        <div class="input-group">
+            <label class="slider-markers">0s</label>
+            <input class="input-style" type="range" min="0" max="20" value="0" class="slider" id="delayLength"
+                   onchange="delayLengthText.value = delayLength.value + 's'">
+            <label class="slider-markers">20s</label>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+<script type="module">
+  import {App} from './app.js';
+  import createImageCache from './createImageCache.js';
+  import {FISH_IMAGE_MAP} from "./fishConfig.js";
+
+  const canvas = document.createElement("canvas");
+  document.body.appendChild(canvas);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  window.addEventListener('resize', function () {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+
+  let imageCache = createImageCache();
+
+  imageCache.loadImages(FISH_IMAGE_MAP);
+  imageCache.imagesOnload(() => {
+    console.log('All images are loaded!')
+    new App(canvas).run(imageCache);
+  })
+</script>
+
+</html>
