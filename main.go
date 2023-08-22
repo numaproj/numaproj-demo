@@ -6,17 +6,18 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -69,15 +70,20 @@ func init() {
 	}
 }
 
+var logMessage *LogMessage
+
 func main() {
 	var (
 		listenAddr       string
 		terminationDelay int
 		tls              bool
+		configPath       string
 	)
 	flag.StringVar(&listenAddr, "listen-addr", ":8080", "server listen address")
 	flag.IntVar(&terminationDelay, "termination-delay", defaultTerminationDelay, "termination delay in seconds")
-	flag.BoolVar(&tls, "tls", true, "Enable TLS (with self-signed certificate)")
+	flag.BoolVar(&tls, "tls", false, "Enable TLS (with self-signed certificate)")
+	flag.StringVar(&configPath, "logconfig", "config.yaml", "Enable TLS (with self-signed certificate)")
+
 	flag.Parse()
 
 	rand.Seed(time.Now().UnixNano())
@@ -103,6 +109,8 @@ func main() {
 		Addr:    ":8490",
 		Handler: metricRouter,
 	}
+
+	logMessage = NewLogMessage(configPath)
 
 	if tls {
 		tlsConfig, err := CreateServerTLSConfig("", "", []string{"localhost", "numalogic-demo", "127.0.0.1", "*"})
@@ -214,11 +222,16 @@ func getFish(w http.ResponseWriter, r *http.Request) {
 
 	if requestParams.Return500Probability != nil && *requestParams.Return500Probability > 0 && *requestParams.Return500Probability >= rand.Intn(100) {
 		statusCode = http.StatusInternalServerError
+		log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s, stack=%s", logMessage.GetMessage("500"), debug.PrintStack)
+		debug.PrintStack()
 		totalRequests.WithLabelValues("500", "true").Inc()
 	} else if envErrorRate > 0 && rand.Intn(100) < errorRate {
 		statusCode = http.StatusInternalServerError
+		log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s, stack=%s", logMessage.GetMessage("500"), debug.PrintStack)
+		//debug.PrintStack()
 		totalRequests.WithLabelValues("500", "true").Inc()
 	} else {
+		log.WithField("status", "200").Infof("msg=%s", logMessage.GetMessage("200"))
 		totalRequests.WithLabelValues("200", "true").Inc()
 	}
 	duration := time.Now().Sub(start).Seconds()
