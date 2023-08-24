@@ -78,11 +78,13 @@ func main() {
 		terminationDelay int
 		tls              bool
 		configPath       string
+		logEnable        bool
 	)
 	flag.StringVar(&listenAddr, "listen-addr", ":8080", "server listen address")
 	flag.IntVar(&terminationDelay, "termination-delay", defaultTerminationDelay, "termination delay in seconds")
 	flag.BoolVar(&tls, "tls", false, "Enable TLS (with self-signed certificate)")
-	flag.StringVar(&configPath, "logconfig", "config.yaml", "Enable TLS (with self-signed certificate)")
+	flag.StringVar(&configPath, "logconfig", "config.yaml", "Pass the logmessage config")
+	flag.BoolVar(&logEnable, "logenable", false, "Enable TLS (with self-signed certificate)")
 
 	flag.Parse()
 
@@ -109,8 +111,10 @@ func main() {
 		Addr:    ":8490",
 		Handler: metricRouter,
 	}
+	if logEnable {
 
-	logMessage = NewLogMessage(configPath)
+		logMessage = NewLogMessage(configPath, logEnable)
+	}
 
 	if tls {
 		tlsConfig, err := CreateServerTLSConfig("", "", []string{"localhost", "numalogic-demo", "127.0.0.1", "*"})
@@ -222,16 +226,22 @@ func getFish(w http.ResponseWriter, r *http.Request) {
 
 	if requestParams.Return500Probability != nil && *requestParams.Return500Probability > 0 && *requestParams.Return500Probability >= rand.Intn(100) {
 		statusCode = http.StatusInternalServerError
-		log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s, stack=%s", logMessage.GetMessage("500"), debug.PrintStack)
-		debug.PrintStack()
+		if logMessage.IsEnable() {
+			log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s", logMessage.GetMessage("500"))
+			debug.PrintStack()
+		}
 		totalRequests.WithLabelValues("500", "true").Inc()
 	} else if envErrorRate > 0 && rand.Intn(100) < errorRate {
 		statusCode = http.StatusInternalServerError
-		log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s, stack=%s", logMessage.GetMessage("500"), debug.PrintStack)
-		//debug.PrintStack()
+		if logMessage.IsEnable() {
+			log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s", logMessage.GetMessage("500"))
+			debug.PrintStack()
+		}
 		totalRequests.WithLabelValues("500", "true").Inc()
 	} else {
-		log.WithField("status", "200").Infof("msg=%s", logMessage.GetMessage("200"))
+		if logMessage.IsEnable() {
+			log.WithField("status", "200").Infof("msg=%s", logMessage.GetMessage("200"))
+		}
 		totalRequests.WithLabelValues("200", "true").Inc()
 	}
 	duration := time.Now().Sub(start).Seconds()

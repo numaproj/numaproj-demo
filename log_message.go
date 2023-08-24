@@ -8,23 +8,33 @@ import (
 )
 
 type LogMessage struct {
-	Message map[string][]string
+	logEnable bool
+	Message   map[string][]string
 }
 
-func NewLogMessage(path string) *LogMessage {
+func NewLogMessage(path string, enable bool) *LogMessage {
 	logMsg := LogMessage{}
 	f, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
+	logMsg.logEnable = enable
 	logMsg.Message = make(map[string][]string)
 	yaml.Unmarshal(f, logMsg.Message)
 	log.Println(logMsg)
 	return &logMsg
 }
+func (lm *LogMessage) IsEnable() bool {
+	return lm.logEnable
+}
 
 func (lm *LogMessage) GetMessage(code string) string {
-	msgs := lm.Message[code]
-	indx := rand.Intn(len(msgs))
-	return msgs[indx]
+	if lm.logEnable {
+		msgs := lm.Message[code]
+		indx := rand.Intn(len(msgs))
+		return msgs[indx]
+	} else {
+		return ""
+	}
+
 }
