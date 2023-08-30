@@ -60,7 +60,7 @@ spec:
                   fieldPath: metadata.namespace
             - name: VERSION
               value: "octo"
-          image: quay.io/numaio/numalogic-demo:octo
+          image: quay.io/numaio/numalogic-demo:log
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
