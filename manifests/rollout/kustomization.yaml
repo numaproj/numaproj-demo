@@ -9,3 +9,4 @@ resources:
   - error-rate-anomaly.yaml
   - latency-anomaly.yaml
   - unified-anomaly.yaml
+  - log-config.yaml

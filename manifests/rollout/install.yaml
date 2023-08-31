@@ -13,7 +13,7 @@ metadata:
   labels:
     app: numalogic-rollout-demo
 spec:
-  replicas: 6
+  replicas: 1
   revisionHistoryLimit: 1
   selector:
     matchLabels:
@@ -51,6 +51,10 @@ spec:
       labels:
         app: numalogic-rollout-demo
     spec:
+      volumes:
+        - name: log-config-volume
+          configMap:
+            name: demo-log-config
       containers:
         - name: app
           env:
@@ -61,7 +65,15 @@ spec:
             - name: VERSION
               value: "octo"
           image: quay.io/numaio/numalogic-demo:log
+          args:
+            - --logconfig
+            - /etc/config/config.yaml
+            - --logenable
+            - "true"
           imagePullPolicy: Always
+          volumeMounts:
+            - name: log-config-volume
+              mountPath: /etc/config
           ports:
             - containerPort: 8080
               name: service
@@ -69,16 +81,16 @@ spec:
             - containerPort: 8490
               name: metric
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              scheme: HTTPS
-              port: 8080
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              scheme: HTTPS
-              port: 8080
+#          livenessProbe:
+#            httpGet:
+#              path: /healthz
+#              scheme: HTTPS
+#              port: 8080
+#          readinessProbe:
+#            httpGet:
+#              path: /healthz
+#              scheme: HTTPS
+#              port: 8080
           resources:
             requests:
               cpu: 300m
