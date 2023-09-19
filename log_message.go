@@ -14,14 +14,16 @@ type LogMessage struct {
 
 func NewLogMessage(path string, enable bool) *LogMessage {
 	logMsg := LogMessage{}
-	f, err := os.ReadFile(path)
-	if err != nil {
-		log.Fatal(err)
-	}
 	logMsg.logEnable = enable
 	logMsg.Message = make(map[string][]string)
-	yaml.Unmarshal(f, logMsg.Message)
-	log.Println(logMsg)
+	if enable {
+		f, err := os.ReadFile(path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		yaml.Unmarshal(f, logMsg.Message)
+		log.Println(logMsg)
+	}
 	return &logMsg
 }
 func (lm *LogMessage) IsEnable() bool {

@@ -96,6 +96,7 @@ func main() {
 	router.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./ui"))))
 
 	router.HandleFunc("/fish", getFish)
+	router.HandleFunc("/oom", handleOOM)
 	router.Handle("/metrics", promhttp.Handler())
 	router.Handle("/actuator/prometheus", promhttp.Handler())
 	router.Handle("/healthz", promhttp.Handler())
@@ -111,10 +112,10 @@ func main() {
 		Addr:    ":8490",
 		Handler: metricRouter,
 	}
-	if logEnable {
+	//if logEnable {
 
-		logMessage = NewLogMessage(configPath, logEnable)
-	}
+	logMessage = NewLogMessage(configPath, false)
+	//}
 
 	if tls {
 		tlsConfig, err := CreateServerTLSConfig("", "", []string{"localhost", "numalogic-demo", "127.0.0.1", "*"})
@@ -207,14 +208,14 @@ func getFish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var delayLength float64
-	var delayLengthStr string
+	var _ string
 	if requestParams.DelayLength > 0 {
 		delayLength = requestParams.DelayLength
 	} else if envLatency > 0 {
 		delayLength = envLatency
 	}
 	if delayLength > 0 {
-		delayLengthStr = fmt.Sprintf(" (%fs)", delayLength)
+		_ = fmt.Sprintf(" (%fs)", delayLength)
 		time.Sleep(time.Duration(delayLength) * time.Second)
 	}
 
@@ -247,7 +248,7 @@ func getFish(w http.ResponseWriter, r *http.Request) {
 	duration := time.Now().Sub(start).Seconds()
 	totalRequestsLatency.WithLabelValues(fmt.Sprintf("%d", statusCode), "true").Set(duration)
 	printFish(fish, w, statusCode)
-	log.Printf("%d %f - %s%s\n", statusCode, duration, fish, delayLengthStr)
+	//log.Printf("%d %f - %s%s\n", statusCode, duration, fish, delayLengthStr)
 }
 
 func printFish(fishToPrint string, w http.ResponseWriter, statusCode int) {
@@ -255,4 +256,18 @@ func printFish(fishToPrint string, w http.ResponseWriter, statusCode int) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(statusCode)
 	fmt.Fprintf(w, "\"%s\"", fishToPrint)
+}
+
+func handleOOM(w http.ResponseWriter, r *http.Request) {
+	go func() {
+		for {
+			memUse()
+		}
+	}()
+}
+
+func memUse() {
+	var stack [1024 * 1024]byte
+	heap := make([]byte, 1024*1024)
+	_, _ = stack, heap
 }

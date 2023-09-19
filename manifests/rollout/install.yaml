@@ -13,7 +13,7 @@ metadata:
   labels:
     app: numalogic-rollout-demo
 spec:
-  replicas: 1
+  replicas: 2
   revisionHistoryLimit: 1
   selector:
     matchLabels:
@@ -64,7 +64,7 @@ spec:
                   fieldPath: metadata.namespace
             - name: VERSION
               value: "octo"
-          image: quay.io/numaio/numalogic-demo:log
+          image: quay.io/numaio/numalogic-demo:log5
           args:
             - --logconfig
             - /etc/config/config.yaml

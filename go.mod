@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/prometheus/client_golang v1.14.0
 	github.com/sirupsen/logrus v1.6.0
+	github.com/slok/go-http-metrics v0.10.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
