@@ -126,7 +126,7 @@ func main() {
 				default:
 					log.WithField("status", "200").Infof("msg=%s", logMessage.GetMessage("200"))
 				}
-				time.Sleep(1 * time.Second)
+				time.Sleep(500 * time.Millisecond)
 			}
 		}()
 	}
