@@ -112,10 +112,24 @@ func main() {
 		Addr:    ":8490",
 		Handler: metricRouter,
 	}
-	//if logEnable {
-
-	logMessage = NewLogMessage(configPath, false)
-	//}
+	logMessage = NewLogMessage(configPath, logEnable)
+	if logEnable {
+		go func() {
+			statusCode := []string{"200", "200", "200"}
+			for {
+				indx := rand.Intn(len(statusCode))
+				code := statusCode[indx]
+				switch code {
+				case "500":
+					log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s", logMessage.GetMessage("500"))
+					debug.PrintStack()
+				default:
+					log.WithField("status", "200").Infof("msg=%s", logMessage.GetMessage("200"))
+				}
+				time.Sleep(30 * time.Millisecond)
+			}
+		}()
+	}
 
 	if tls {
 		tlsConfig, err := CreateServerTLSConfig("", "", []string{"localhost", "numalogic-demo", "127.0.0.1", "*"})
@@ -208,14 +222,14 @@ func getFish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var delayLength float64
-	var _ string
+	//var delayLengthStr string
 	if requestParams.DelayLength > 0 {
 		delayLength = requestParams.DelayLength
 	} else if envLatency > 0 {
 		delayLength = envLatency
 	}
 	if delayLength > 0 {
-		_ = fmt.Sprintf(" (%fs)", delayLength)
+		//delayLengthStr = fmt.Sprintf(" (%fs)", delayLength)
 		time.Sleep(time.Duration(delayLength) * time.Second)
 	}
 
