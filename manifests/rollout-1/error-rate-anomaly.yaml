@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: error-rate-anomaly
+spec:
+  args:
+    - name: stable-hash
+    - name: canary-hash
+    - name: initial-delay
+      value: 120s
+    - name: count
+      value: '20'
+    - name: interval
+      value: 5s
+    - name: failure-limit
+      value: '3'
+    - name: inconclusive-limit
+      value: '3'
+  metrics:
+    - name: error-rate-anomaly
+      count: '{{args.count}}'
+      failureLimit: '{{args.failure-limit}}'
+      inconclusiveLimit: '{{args.inconclusive-limit}}'
+      initialDelay: '{{args.initial-delay}}'
+      interval: '{{args.interval}}'
+      successCondition: result[0] < 3
+      provider:
+        prometheus:
+          address: 'http://prometheus-service.monitoring.svc.cluster.local:8080'
+          query: >+
+            namespace_rollout_hash_error_rate_anomaly{namespace="rollout-numalogic-demo", hash_id="{{args.canary-hash}}"}

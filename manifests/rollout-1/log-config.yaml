@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-log-config
+data:
+  config.yaml: |
+    200:
+      - "User successfully logged"
+      - "Request served successfully"
+    500:
+      - "panic: runtime error: invalid memory address or nil pointer dereference [signal 0xb code=0x1 addr=0x38 pc=0x26df]" 
+      - "error warming credentials: AccessDenied: User: arn:aws:sts::669243737400:assumed-role/iks-tech-ai-ppd-usw2-k8s-kiam-role/i-057af8e08efe280c6
+        is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::669243737400:role/k8s-data-mlplatform-test-rc4-may23-qal-usw2-eks\\n\\tstatus
+        code: 403"
+      - "error processing request: error fetching credentials: rpc error:
+        code = Unknown desc = AccessDenied: User: arn:aws:sts::301532132469:assumed-role/iks-devp-apigwint-ppd-usw2-k8s-kiam-role/i-0fea79e2ead38e37d
+        is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::301532132469:role/k8s-services-gateway-apigwint-usw2-qa-tid2\\n\\tstatus
+        code: 403"
+      
+    
