@@ -23,9 +23,9 @@ spec:
       inconclusiveLimit: '{{args.inconclusive-limit}}'
       initialDelay: '{{args.initial-delay}}'
       interval: '{{args.interval}}'
-      successCondition: result[0] < 3
+      successCondition: result[0] < 4
       provider:
         prometheus:
           address: 'http://prometheus-service.monitoring.svc.cluster.local:8080'
           query: >+
-           namespace_rollout_hash_unified_anomaly{namespace="rollout-numalogic-demo", hash_id="{{args.canary-hash}}"}
+            namespace_app_rollouts_unified_anomaly{namespace="rollout-numalogic-demo", rollouts_pod_template_hash="{{args.canary-hash}}"}
