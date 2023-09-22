@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-log-config
+data:
+  config.yaml: |
+    200:
+      - "User successfully logged"
+      - "Request served successfully"
+    500:
+      - "connection runtime error: too many redis connections opened" 
+      - "connection timeout error: failed to retry entry: redis connection context deadline exceeded"
+    
+    
+    
+      
+    

@@ -7,11 +7,12 @@ SLIDER?=true
 ifneq (${FISH},)
 IMAGE_TAG=${FISH}
 endif
+
 ifneq (${LATENCY},)
-IMAGE_TAG=slow-${COLOR}
+IMAGE_TAG=slow-${FISH}
 endif
 ifneq (${ERROR_RATE},)
-IMAGE_TAG=bad-${COLOR}
+IMAGE_TAG=bad-${FISH}
 endif
 
 ifdef IMAGE_NAMESPACE
@@ -27,7 +28,7 @@ build:
 
 .PHONY: image
 image:
-	docker build --build-arg FISH=${FISH}  --build-arg SLIDER=${SLIDER} --build-arg ERROR_RATE=${ERROR_RATE} --build-arg LATENCY=${LATENCY} -t $(IMAGE_PREFIX)numalogic-demo:${IMAGE_TAG} .
+	docker build --build-arg FISH=${FISH}  --build-arg SLIDER=${SLIDER} --build-arg ERROR_RATE=${ERROR_RATE} --platform linux/amd64 --build-arg LATENCY=${LATENCY} -t $(IMAGE_PREFIX)numalogic-demo:${IMAGE_TAG} .
 	@if [ "$(DOCKER_PUSH)" = "true" ] ; then docker push $(IMAGE_PREFIX)numalogic-demo:$(IMAGE_TAG) ; fi
 
 .PHONY: load-tester-image

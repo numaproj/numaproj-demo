@@ -6,17 +6,17 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
+	log "github.com/sirupsen/logrus"
 	"github.com/slok/go-http-metrics/middleware"
 	"github.com/slok/go-http-metrics/middleware/std"
 )
@@ -55,15 +55,22 @@ func init() {
 	}
 }
 
+var logMessage *LogMessage
+
 func main() {
 	var (
 		listenAddr       string
 		terminationDelay int
 		tls              bool
+		configPath       string
+		logEnable        bool
 	)
 	flag.StringVar(&listenAddr, "listen-addr", ":8080", "server listen address")
 	flag.IntVar(&terminationDelay, "termination-delay", defaultTerminationDelay, "termination delay in seconds")
-	flag.BoolVar(&tls, "tls", true, "Enable TLS (with self-signed certificate)")
+	flag.BoolVar(&tls, "tls", false, "Enable TLS (with self-signed certificate)")
+	flag.StringVar(&configPath, "logconfig", "config.yaml", "Pass the logmessage config")
+	flag.BoolVar(&logEnable, "logenable", true, "Enable TLS (with self-signed certificate)")
+
 	flag.Parse()
 
 	mdlw := middleware.New(middleware.Config{
@@ -79,6 +86,7 @@ func main() {
 	router.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./ui"))))
 
 	router.HandleFunc("/fish", getFish)
+	router.HandleFunc("/oom", handleOOM)
 	router.Handle("/metrics", promhttp.Handler())
 	router.Handle("/actuator/prometheus", promhttp.Handler())
 	router.Handle("/healthz", promhttp.Handler())
@@ -95,6 +103,24 @@ func main() {
 	metrics := &http.Server{
 		Addr:    ":8490",
 		Handler: metricRouter,
+	}
+	logMessage = NewLogMessage(configPath, logEnable)
+	if logEnable {
+		go func() {
+			statusCode := []string{"200", "200", "200"}
+			for {
+				indx := rand.Intn(len(statusCode))
+				code := statusCode[indx]
+				switch code {
+				case "500":
+					log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s", logMessage.GetMessage("500"))
+					debug.PrintStack()
+				default:
+					log.WithField("status", "200").Infof("msg=%s", logMessage.GetMessage("200"))
+				}
+				time.Sleep(500 * time.Millisecond)
+			}
+		}()
 	}
 
 	if tls {
@@ -155,7 +181,7 @@ type fishParams struct {
 }
 
 func getFish(w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
+	//start := time.Now()
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(500)
@@ -188,14 +214,14 @@ func getFish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var delayLength float64
-	var delayLengthStr string
+	//var delayLengthStr string
 	if requestParams.DelayLength > 0 {
 		delayLength = requestParams.DelayLength
 	} else if envLatency > 0 {
 		delayLength = envLatency
 	}
 	if delayLength > 0 {
-		delayLengthStr = fmt.Sprintf(" (%fs)", delayLength)
+		//delayLengthStr = fmt.Sprintf(" (%fs)", delayLength)
 		time.Sleep(time.Duration(delayLength) * time.Second)
 	}
 
@@ -207,12 +233,27 @@ func getFish(w http.ResponseWriter, r *http.Request) {
 
 	if requestParams.Return500Probability != nil && *requestParams.Return500Probability > 0 && *requestParams.Return500Probability >= rand.Intn(100) {
 		statusCode = http.StatusInternalServerError
+		if logMessage.IsEnable() {
+			log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s", logMessage.GetMessage("500"))
+			debug.PrintStack()
+		}
+		//totalRequests.WithLabelValues("500", "true").Inc()
 	} else if envErrorRate > 0 && rand.Intn(100) < errorRate {
 		statusCode = http.StatusInternalServerError
+		if logMessage.IsEnable() {
+			log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s", logMessage.GetMessage("500"))
+			debug.PrintStack()
+		}
+		//totalRequests.WithLabelValues("500", "true").Inc()
+	} else {
+		if logMessage.IsEnable() {
+			log.WithField("status", "200").Infof("msg=%s", logMessage.GetMessage("200"))
+		}
+		//totalRequests.WithLabelValues("200", "true").Inc()
 	}
-	duration := time.Now().Sub(start).Seconds()
+	//duration := time.Now().Sub(start).Seconds()
 	printFish(fish, w, statusCode)
-	log.Printf("%d %f - %s%s\n", statusCode, duration, fish, delayLengthStr)
+	//log.Printf("%d %f - %s%s\n", statusCode, duration, fish, delayLengthStr)
 }
 
 func printFish(fishToPrint string, w http.ResponseWriter, statusCode int) {
@@ -220,4 +261,18 @@ func printFish(fishToPrint string, w http.ResponseWriter, statusCode int) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(statusCode)
 	fmt.Fprintf(w, "\"%s\"", fishToPrint)
+}
+
+func handleOOM(w http.ResponseWriter, r *http.Request) {
+	go func() {
+		for {
+			memUse()
+		}
+	}()
+}
+
+func memUse() {
+	var stack [1024 * 1024]byte
+	heap := make([]byte, 1024*1024)
+	_, _ = stack, heap
 }
