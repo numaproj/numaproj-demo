@@ -16,4 +16,5 @@
 vendor/
 .idea/
 numalogic-demo
+/main
 

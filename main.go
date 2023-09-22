@@ -15,9 +15,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
+	"github.com/slok/go-http-metrics/middleware"
+	"github.com/slok/go-http-metrics/middleware/std"
 )
 
 const (
@@ -34,22 +35,6 @@ var (
 	fish         = os.Getenv("FISH")
 	envLatency   float64
 	envErrorRate int
-)
-
-var totalRequests = prometheus.NewCounterVec(
-	prometheus.CounterOpts{
-		Name: "http_server_requests_seconds_count",
-		Help: "Number of incoming requests",
-	},
-	[]string{"status", "intuit_alert"},
-)
-
-var totalRequestsLatency = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Name: "http_server_requests_seconds_sum",
-		Help: "http request duration",
-	},
-	[]string{"status", "intuit_alert"},
 )
 
 func init() {
@@ -88,9 +73,14 @@ func main() {
 
 	flag.Parse()
 
+	mdlw := middleware.New(middleware.Config{
+		Recorder: NewRecorder(Config{
+			StatusCodeLabel: "status",
+			HandlerIDLabel:  "uri",
+		}),
+	})
+
 	rand.Seed(time.Now().UnixNano())
-	prometheus.Register(totalRequests)
-	prometheus.Register(totalRequestsLatency)
 
 	router := http.NewServeMux()
 	router.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./ui"))))
@@ -101,12 +91,14 @@ func main() {
 	router.Handle("/actuator/prometheus", promhttp.Handler())
 	router.Handle("/healthz", promhttp.Handler())
 
+	handler := std.Handler("", mdlw, router)
+
 	metricRouter := http.NewServeMux()
 	metricRouter.Handle("/metrics", promhttp.Handler())
 	metricRouter.Handle("/actuator/prometheus", promhttp.Handler())
 	server := &http.Server{
 		Addr:    listenAddr,
-		Handler: router,
+		Handler: handler,
 	}
 	metrics := &http.Server{
 		Addr:    ":8490",
@@ -258,9 +250,8 @@ func getFish(w http.ResponseWriter, r *http.Request) {
 			log.WithField("status", "200").Infof("msg=%s", logMessage.GetMessage("200"))
 		}
 		totalRequests.WithLabelValues("200", "true").Inc()
-	}
+	} 
 	duration := time.Now().Sub(start).Seconds()
-	totalRequestsLatency.WithLabelValues(fmt.Sprintf("%d", statusCode), "true").Set(duration)
 	printFish(fish, w, statusCode)
 	//log.Printf("%d %f - %s%s\n", statusCode, duration, fish, delayLengthStr)
 }
