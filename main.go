@@ -69,7 +69,7 @@ func main() {
 	flag.IntVar(&terminationDelay, "termination-delay", defaultTerminationDelay, "termination delay in seconds")
 	flag.BoolVar(&tls, "tls", false, "Enable TLS (with self-signed certificate)")
 	flag.StringVar(&configPath, "logconfig", "config.yaml", "Pass the logmessage config")
-	flag.BoolVar(&logEnable, "logenable", false, "Enable TLS (with self-signed certificate)")
+	flag.BoolVar(&logEnable, "logenable", true, "Enable TLS (with self-signed certificate)")
 
 	flag.Parse()
 
@@ -181,7 +181,7 @@ type fishParams struct {
 }
 
 func getFish(w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
+	//start := time.Now()
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(500)
@@ -237,21 +237,21 @@ func getFish(w http.ResponseWriter, r *http.Request) {
 			log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s", logMessage.GetMessage("500"))
 			debug.PrintStack()
 		}
-		totalRequests.WithLabelValues("500", "true").Inc()
+		//totalRequests.WithLabelValues("500", "true").Inc()
 	} else if envErrorRate > 0 && rand.Intn(100) < errorRate {
 		statusCode = http.StatusInternalServerError
 		if logMessage.IsEnable() {
 			log.WithField("status", http.StatusInternalServerError).Errorf("msg=%s", logMessage.GetMessage("500"))
 			debug.PrintStack()
 		}
-		totalRequests.WithLabelValues("500", "true").Inc()
+		//totalRequests.WithLabelValues("500", "true").Inc()
 	} else {
 		if logMessage.IsEnable() {
 			log.WithField("status", "200").Infof("msg=%s", logMessage.GetMessage("200"))
 		}
-		totalRequests.WithLabelValues("200", "true").Inc()
-	} 
-	duration := time.Now().Sub(start).Seconds()
+		//totalRequests.WithLabelValues("200", "true").Inc()
+	}
+	//duration := time.Now().Sub(start).Seconds()
 	printFish(fish, w, statusCode)
 	//log.Printf("%d %f - %s%s\n", statusCode, duration, fish, delayLengthStr)
 }

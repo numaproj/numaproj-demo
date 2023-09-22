@@ -82,33 +82,37 @@ func NewRecorder(cfg Config) metrics.Recorder {
 
 	r := &recorder{
 		httpRequestDurHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Namespace: cfg.Prefix,
-			Subsystem: "http",
-			Name:      "request_duration_seconds",
-			Help:      "The latency of the HTTP requests.",
-			Buckets:   cfg.DurationBuckets,
+			Namespace:   cfg.Prefix,
+			Subsystem:   "http",
+			Name:        "request_duration_seconds",
+			Help:        "The latency of the HTTP requests.",
+			ConstLabels: map[string]string{"intuit_alerts": "true"},
+			Buckets:     cfg.DurationBuckets,
 		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
 
 		httpResponseDurSummary: prometheus.NewSummaryVec(prometheus.SummaryOpts{
-			Namespace: cfg.Prefix,
-			Subsystem: "http",
-			Name:      "server_requests_seconds",
-			Help:      "The time spent serving requests.",
+			Namespace:   cfg.Prefix,
+			Subsystem:   "http",
+			Name:        "server_requests_seconds",
+			Help:        "The time spent serving requests.",
+			ConstLabels: map[string]string{"intuit_alerts": "true"},
 		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
 
 		httpResponseSizeHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Namespace: cfg.Prefix,
-			Subsystem: "http",
-			Name:      "response_size_bytes",
-			Help:      "The size of the HTTP responses.",
-			Buckets:   cfg.SizeBuckets,
+			Namespace:   cfg.Prefix,
+			Subsystem:   "http",
+			Name:        "response_size_bytes",
+			Help:        "The size of the HTTP responses.",
+			Buckets:     cfg.SizeBuckets,
+			ConstLabels: map[string]string{"intuit_alerts": "true"},
 		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel, cfg.MethodLabel, cfg.StatusCodeLabel}),
 
 		httpRequestsInflight: prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Namespace: cfg.Prefix,
-			Subsystem: "http",
-			Name:      "requests_inflight",
-			Help:      "The number of inflight requests being handled at the same time.",
+			Namespace:   cfg.Prefix,
+			Subsystem:   "http",
+			Name:        "requests_inflight",
+			Help:        "The number of inflight requests being handled at the same time.",
+			ConstLabels: map[string]string{"intuit_alerts": "true"},
 		}, []string{cfg.ServiceLabel, cfg.HandlerIDLabel}),
 	}
 
