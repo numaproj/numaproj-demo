@@ -1,17 +1,18 @@
 FISH?=
 IMAGE_NAMESPACE?=
 ERROR_RATE?=
-IMAGE_TAG?=log5
+IMAGE_TAG?=latest
 SLIDER?=true
 
-#ifneq (${FISH},)
-#IMAGE_TAG=${FISH}
-#endif
+ifneq (${FISH},)
+IMAGE_TAG=${FISH}
+endif
+
 ifneq (${LATENCY},)
-IMAGE_TAG=slow-${COLOR}
+IMAGE_TAG=slow-${FISH}
 endif
 ifneq (${ERROR_RATE},)
-IMAGE_TAG=bad-${COLOR}
+IMAGE_TAG=bad-${FISH}
 endif
 
 ifdef IMAGE_NAMESPACE

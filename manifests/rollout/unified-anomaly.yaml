@@ -11,7 +11,7 @@ spec:
     - name: count
       value: '20'
     - name: interval
-      value: 10s
+      value: 30s
     - name: failure-limit
       value: '5'
     - name: inconclusive-limit
@@ -26,6 +26,6 @@ spec:
       successCondition: result[0] < 4
       provider:
         prometheus:
-          address: 'http://prometheus-service.monitoring.svc.cluster.local:8080'
+          address: 'http://thanos.addon-metricset-ns.svc.cluster.local:9090'
           query: >+
             namespace_app_rollouts_unified_anomaly{namespace="rollout-numalogic-demo", rollouts_pod_template_hash="{{args.canary-hash}}"}
