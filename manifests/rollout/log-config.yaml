@@ -8,7 +8,7 @@ data:
       - "User successfully logged"
       - "Request served successfully"
     500:
-      - "connection runtime error: too many redis connection opened" 
+      - "connection runtime error: too many redis connections opened" 
       - "connection timeout error: failed to retry entry: redis connection context deadline exceeded"
     
     
