@@ -171,6 +171,10 @@ input#delayLength {
 }
 
 .oom-icon {
-    width: 100px;
+    width: 50px;
+    cursor: pointer;
+}
+
+#delayLength, #return500 {
     cursor: pointer;
 }
