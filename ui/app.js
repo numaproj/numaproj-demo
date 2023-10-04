@@ -302,6 +302,19 @@ export class Sliders {
         this.currentFishLabel = document.getElementById("currentFish");
         this.currentFish = null
 
+        this.triggerOOMIcon = document.getElementById("triggerOOM")
+        this.triggerOOMIcon.addEventListener("click", this.triggerOOM.bind(this))
+    }
+
+    triggerOOM() {
+        // trigger oom
+        let count = 6
+        while (count > 0) {
+            fetch('./oom', {
+                method: "GET"
+            })
+            count = count - 1
+        }
     }
 
     updateFish() {

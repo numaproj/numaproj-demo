@@ -162,3 +162,15 @@ input#delayLength {
     background: #4CAF50;
     cursor: pointer;
 }
+
+.oom-icon-wrapper {
+    display: flex;
+    justify-content: end;
+    flex-direction: column;
+    padding-bottom: 20px;
+}
+
+.oom-icon {
+    width: 100px;
+    cursor: pointer;
+}
