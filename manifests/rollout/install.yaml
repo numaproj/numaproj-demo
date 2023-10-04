@@ -64,7 +64,7 @@ spec:
                   fieldPath: metadata.namespace
             - name: VERSION
               value: "octo"
-          image: quay.io/numaio/numalogic-demo:puffy
+          image: quay.io/numaio/numalogic-demo:puffy-1
           args:
             - --logconfig
             - /etc/config/config.yaml
