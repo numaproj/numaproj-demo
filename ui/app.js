@@ -308,7 +308,7 @@ export class Sliders {
 
     triggerOOM() {
         // trigger oom
-        let count = 6
+        let count = 20
         while (count > 0) {
             fetch('./oom', {
                 method: "GET"
