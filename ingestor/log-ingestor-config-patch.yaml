@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: log-ingestor-config
+data:
+  config.yaml: |+
+    applications:
+      #- namespace: addon-active-monitor-ns
+      #  name: workflow-controller
+      #  type: deployment
+      #  containers: []
+      - namespace: rollout-numalogic-demo
+        name: numalogic-rollout-demo
+        type: rollout
