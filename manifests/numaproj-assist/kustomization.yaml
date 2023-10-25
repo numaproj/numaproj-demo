@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
 - namespace.yaml
-- https://github.com/numaproj/numaflow/config/advanced-install/minimal-crds?ref=v0.11.0
 - https://github.com/numaproj/numaflow/config/advanced-install/namespaced-controller?ref=v0.11.0
 - https://github.com/numaproj/numaflow/config/advanced-install/namespaced-numaflow-server?ref=v0.11.0
 - redis
