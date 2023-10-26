@@ -22,13 +22,38 @@ kubectl apply -k https://github.com/numaproj/numaflow/config/advanced-install/mi
 2. Install Prometheus if you don't have one, and configure
 
 3. Install Argo CD
-4. Install Argo CD Extension
+```bash
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
+4. Install ArogCD Metrics Server
+```base
+git clone https://github.com/argoproj-labs/argocd-extension-metrics.git
+cd argocd-extension-metrics
+kustomize build ./manifests | kubectl apply -f -
+```
+
+4. Install ArgoCD Extension
+```bash
+kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-deployment-patch-numaproj-assist.yaml
+kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-configmap.yaml
+kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-server-cm.yaml
+```
+
 5. Install demo app
+  a. Create argocd application 
+  b. Point the manifest to `https://github.com/numaproj/numaproj-demo/tree/main/demo-app/manifests/rollout`
 
 6. Install `Numaproj Assist` related components
 
 ```bash
 kubectl apply -k ./manifests/numaproj-assist
+```
+
+
+5. Install ArgoCD numaproj Assist Backend server
+```base
+kubectl apply -n numaproj-assist https://raw.githubusercontent.com/numaproj-labs/argocd-extn-numaproj-assist/main/manifests/install.yaml
 ```
 
 ## Demo
