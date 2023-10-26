@@ -7,15 +7,15 @@ spec:
     - name: stable-hash
     - name: canary-hash
     - name: initial-delay
-      value: 120s
+      value: 60s
     - name: count
       value: '30'
     - name: interval
-      value: 10s
+      value: 30s
     - name: failure-limit
-      value: '3'
+      value: '5'
     - name: inconclusive-limit
-      value: '3'
+      value: '5'
   metrics:
     - name: unified-anomaly
       count: '{{args.count}}'
