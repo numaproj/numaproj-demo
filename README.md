@@ -26,11 +26,9 @@ kubectl apply -k https://github.com/numaproj/numaflow/config/advanced-install/mi
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
-4. Install ArogCD Metrics Server
+4. Install ArgoCD Metrics Server
 ```base
-git clone https://github.com/argoproj-labs/argocd-extension-metrics.git
-cd argocd-extension-metrics
-kustomize build ./manifests | kubectl apply -f -
+kubectl -n argocd -k https://github.com/argoproj-labs/argocd-extension-metrics/manifests?ref=main
 ```
 
 4. Install ArgoCD Extension
