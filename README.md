@@ -30,26 +30,32 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 ```base
 kubectl -n argocd -k https://github.com/argoproj-labs/argocd-extension-metrics/manifests?ref=main
 ```
+4. Install AIOps Anomaly pipeline
+```base
+kubectl -n argocd -k https://github.com/numaproj/numalogic-prometheus/manifests/prerequisites?ref=main
+kubectl -n argocd -k https://github.com/numaproj/numalogic-prometheus/manifests?ref=main
+```
 
-4. Install ArgoCD Extension
+
+6. Install ArgoCD Extension
 ```bash
 kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-deployment-patch-numaproj-assist.yaml
 kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-configmap.yaml
 kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-server-cm.yaml
 ```
 
-5. Install demo app
+7. Install demo app
   a. Create argocd application 
   b. Point the manifest to `https://github.com/numaproj/numaproj-demo/tree/main/demo-app/manifests/rollout`
 
-6. Install `Numaproj Assist` related components
+8. Install `Numaproj Assist` related components
 
 ```bash
 kubectl apply -k ./manifests/numaproj-assist
 ```
 
 
-5. Install ArgoCD numaproj Assist Backend server
+9. Install ArgoCD numaproj Assist Backend server
 ```base
 kubectl apply -n numaproj-assist https://raw.githubusercontent.com/numaproj-labs/argocd-extn-numaproj-assist/main/manifests/install.yaml
 ```
