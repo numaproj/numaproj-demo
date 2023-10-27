@@ -13,9 +13,9 @@ spec:
     - name: interval
       value: 30s
     - name: failure-limit
-      value: '2'
+      value: '3'
     - name: inconclusive-limit
-      value: '2'
+      value: '3'
   metrics:
     - name: unified-anomaly
       count: '{{args.count}}'
