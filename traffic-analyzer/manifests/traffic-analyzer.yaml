@@ -1,0 +1,60 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: traffic-analyzer-pipeline
+spec:
+  vertices:
+    - name: in
+      scale:
+        min: 1
+      source:
+        kafka:
+          brokers:
+            - kafka-broker:9092
+          topic: input-topic
+          consumerGroup: numaflow-traffic-analyzer
+    - name: keying
+      scale:
+        min: 1
+      udf:
+        container:
+          image: quay.io/numaio/numaflow-demo/traffic-analyzer:v1
+          imagePullPolicy: Always
+          env:
+            - name: UDF_NAME
+              value: "KEYING_UDF"
+    - name: compute-average
+      udf:
+        container:
+          image: quay.io/numaio/numaflow-demo/traffic-analyzer:v1
+          imagePullPolicy: Always
+          env:
+            - name: UDF_NAME
+              value: "COMPUTE_AVERAGE_UDF"
+        groupBy:
+          window:
+            fixed:
+              length: 60s
+          keyed: true
+          storage:
+            persistentVolumeClaim:
+              volumeSize: 3Gi
+              accessMode: ReadWriteOnce
+    - name: log-sink
+      scale:
+        min: 1
+      sink:
+        log: {}
+  edges:
+    - from: in
+      to: keying
+    - from: keying
+      to: compute-average
+      conditions:
+        tags:
+          operator: or
+          values:
+            - car
+            - not_car
+    - from: compute-average
+      to: log-sink

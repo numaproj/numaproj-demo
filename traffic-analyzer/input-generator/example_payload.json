@@ -1,0 +1,9 @@
+{
+  "vehicle_id": "VH1234",
+  "timestamp": "2022-03-01T12:34:56Z",
+  "speed": 60,
+  "vehicle_type": "car",
+  "year": 2018,
+  "color": "blue",
+  "license_plate": "ABC123"
+}
