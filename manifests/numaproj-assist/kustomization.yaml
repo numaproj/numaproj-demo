@@ -7,6 +7,7 @@ resources:
 - https://github.com/numaproj/numaflow/config/advanced-install/namespaced-numaflow-server?ref=v0.11.0
 - redis
 - ingestor
+- isbsvc.yaml
 
 namespace: numaproj-assist
 
