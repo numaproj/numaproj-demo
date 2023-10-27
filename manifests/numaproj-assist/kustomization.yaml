@@ -9,3 +9,7 @@ resources:
 - ingestor
 
 namespace: numaproj-assist
+
+images:
+- name: quay.io/numaproj/numaflow
+  newTag: v0.11.0
