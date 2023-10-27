@@ -30,7 +30,7 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 ```base
 kubectl -n argocd -k https://github.com/argoproj-labs/argocd-extension-metrics/manifests?ref=main
 ```
-4. Install AIOps Anomaly pipeline
+5. Install AIOps Anomaly pipeline
 ```base
 kubectl -n argocd -k https://github.com/numaproj/numalogic-prometheus/manifests/prerequisites?ref=main
 kubectl -n argocd -k https://github.com/numaproj/numalogic-prometheus/manifests?ref=main
