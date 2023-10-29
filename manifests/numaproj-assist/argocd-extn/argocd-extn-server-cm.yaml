@@ -5,7 +5,7 @@ data:
     - name: metrics
       backend:
         services:
-        - url: http://argocd-metrics-server.argocd-metrics-server.svc.cluster.local:9003    
+        - url: http://argocd-metrics-server.argocd.svc.cluster.local:9003    
     - name: logsummary
       backend:
         services:
