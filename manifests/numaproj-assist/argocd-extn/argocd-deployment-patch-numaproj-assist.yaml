@@ -14,7 +14,7 @@ spec:
               value: "true"
             - name: EXTENSION_URL
               value: https://github.com/argoproj-labs/argocd-extension-metrics/releases/download/v1.0.0/extension.tar.gz
-          image: docker.intuit.com/quay-rmt/argoproj/argocd-extn-installer:rc7
+          image: quay.io/argoproj/argocd-extn-installer:rc7
           imagePullPolicy: Always
           volumeMounts:
             - name: extensions
@@ -30,7 +30,7 @@ spec:
               value: "true"
             - name: EXTENSION_URL
               value: https://github.com/numaproj-labs/argocd-extn-log-summary/releases/download/v0.0.1/extension.tar
-          image: docker.intuit.com/quay-rmt/argoproj/argocd-extn-installer:rc7
+          image: quay.io/argoproj/argocd-extn-installer:rc7
           imagePullPolicy: Always
           volumeMounts:
             - name: extensions
