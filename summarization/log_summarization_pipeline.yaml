@@ -1,0 +1,144 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: log-summarization-pipeline
+spec:
+  sideInputs:
+    - name: metrics
+      container:
+        image: quay.io/numaio/metrics-sideinputs:v0.0.7
+        args:
+          - --url=http://prometheus.addon-metricset-ns.svc.cluster.local:9090
+        volumeMounts:
+        - name: config-vol
+          mountPath: /etc/config/apps
+      trigger:
+        schedule: "@every 37s"
+      volumes:
+      - name: config-vol
+        configMap:
+          name: log-ingestor-config
+  limits:
+    readBatchSize: 50
+  vertices:
+    - name: in
+      scale:
+        min: 1
+      source:
+        http:
+          service: true
+        transformer:
+          container:
+            image: quay.io/numaio/numaproj-assist/summarization/log-summarization-udf:v0.0.2
+            imagePullPolicy: Always
+            env:
+              - name: MODE
+                value: "map"
+            args:
+              - "python"
+              - "starter.py"
+              - "map_logs"
+    - name: log-reducer
+      sideInputs:
+        - metrics
+      partitions: 1
+      udf:
+        container:
+          # Apply sampling on the input stream logs
+          image: quay.io/numaio/numaproj-assist/summarization/log-summarization-udf:v0.0.2
+          imagePullPolicy: Always
+          env:
+            - name: MODE
+              value: "reduce"
+          args:
+            - "python"
+            - "starter.py"
+            - "sample_logs"
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: "0.5"
+              memory: 1Gi
+        groupBy:
+          window:
+            fixed:
+              length: 60s
+          keyed: true
+          storage:
+            persistentVolumeClaim:
+              volumeSize: 10Gi
+              accessMode: ReadWriteOnce
+    - name: genai-processor
+      scale:
+        min: 1
+      udf:
+        container:
+          image: quay.io/numaio/numaproj-assist/summarization/log-summarization-udf:v0.0.2
+          imagePullPolicy: Always
+          args:
+            - "python"
+            - "starter.py"
+            - "genai_processor"
+          env:
+            - name: MODEL_NAME
+              value: text-davinci-003
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: log-summarization-tokens
+                  key: openai-api-key
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: "0.5"
+              memory: 1Gi
+    - name: redis-sink
+      scale:
+        min: 1
+      sink:
+        udsink:
+          container:
+            image: quay.io/numaio/numaproj-assist/summarization/log-summarization-udf:v0.0.2
+            imagePullPolicy: Always
+            args:
+              - "python"
+              - "starter.py"
+              - "redis_sink"
+            env:
+              - name: REDIS_HOST
+                value: "isbsvc-log-summarization-redis-svc"
+              - name: REDIS_PORT
+                value:  "26379"
+              - name: REDIS_MASTERNAME
+                value: "mymaster"
+              - name: REDIS_CRED
+                valueFrom:
+                  secretKeyRef:
+                    name: isbsvc-log-summarization-redis-auth
+                    key: redis-password
+            resources:
+              limits:
+                cpu: "1"
+                memory: 2Gi
+              requests:
+                cpu: "0.5"
+                memory: 1Gi
+    - name: sink
+      scale:
+        min: 1
+      sink:
+        log: {}
+  edges:
+    - from: in
+      to: log-reducer
+    - from: log-reducer
+      to: genai-processor
+    - from: genai-processor
+      to: sink
+    - from: genai-processor
+      to: redis-sink
+
