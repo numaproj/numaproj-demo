@@ -3,8 +3,8 @@ kind: Kustomization
 
 resources:
 - namespace.yaml
-- https://github.com/numaproj/numaflow/config/advanced-install/namespaced-controller?ref=v0.11.0
-- https://github.com/numaproj/numaflow/config/advanced-install/namespaced-numaflow-server?ref=v0.11.0
+- https://github.com/numaproj/numaflow/config/advanced-install/namespaced-controller?ref=v1.0.0-rc1
+- https://github.com/numaproj/numaflow/config/advanced-install/namespaced-numaflow-server?v1.0.0-rc1
 - redis
 - ingestor
 - isbsvc.yaml
@@ -13,4 +13,4 @@ namespace: numaproj-assist
 
 images:
 - name: quay.io/numaproj/numaflow
-  newTag: v0.11.0
+  newTag: v1.0.0-rc1
