@@ -21,10 +21,15 @@ kubectl apply -k https://github.com/numaproj/numaflow/config/advanced-install/mi
 
 2. Install Prometheus if you don't have one, and configure
 
-3. Install Argo CD
+3. Install Argo CD and Argo rollouts
 ```bash
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+kubectl create namespace argo-rollouts
+kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+
+
 ```
 4. Install ArgoCD Metrics Server
 ```base
