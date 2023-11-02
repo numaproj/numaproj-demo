@@ -32,15 +32,14 @@ kubectl -n argocd -k https://github.com/argoproj-labs/argocd-extension-metrics/m
 ```
 5. Install AIOps Anomaly pipeline
 ```base
-kubectl -n argocd -k https://github.com/numaproj/numalogic-prometheus/manifests/prerequisites?ref=main
-kubectl -n argocd -k https://github.com/numaproj/numalogic-prometheus/manifests?ref=main
+kubectl  -k https://raw.githubusercontent.com/numaproj/numalogic-prometheus/main/manifests/pipeline/install-numalogic-rollouts.yaml
 ```
 
 
 6. Install ArgoCD Extension
 ```bash
-kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-configmap.yaml
-kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-server-cm.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/manifests/numaproj-assist/argocd-extn/argocd-extn-configmap.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/manifests/numaproj-assist/argocd-extn/argocd-extn-server-cm.yaml
 kubectl patch deployment argocd-server --patch-file https://raw.githubusercontent.com/numaproj/numaproj-demo/main/manifests/numaproj-assist/argocd-extn/argocd-deployment-patch-numaproj-assist.yaml
 ```
 
