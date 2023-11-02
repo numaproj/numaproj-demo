@@ -39,9 +39,9 @@ kubectl -n argocd -k https://github.com/numaproj/numalogic-prometheus/manifests?
 
 6. Install ArgoCD Extension
 ```bash
-kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-deployment-patch-numaproj-assist.yaml
 kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-configmap.yaml
 kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-server-cm.yaml
+kubectl patch deployment argocd-server --patch-file https://raw.githubusercontent.com/numaproj/numaproj-demo/main/manifests/numaproj-assist/argocd-extn/argocd-deployment-patch-numaproj-assist.yaml
 ```
 
 7. Install demo app
