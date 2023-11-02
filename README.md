@@ -20,7 +20,9 @@ kubectl apply -k https://github.com/numaproj/numaflow/config/advanced-install/mi
 ```
 
 2. Install Prometheus if you don't have one, and configure
-   
+```bash
+https://raw.githubusercontent.com/numaproj/numalogic-prometheus/main/manifests/prerequisites/prometheus/install.yaml
+```
 
 2.1. Configure the Prometheus Rule for AIOps (Please update the your Prometheus namespace)
 ```bash
