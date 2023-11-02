@@ -59,7 +59,20 @@ kubectl patch deployment argocd-server -n argocd --patch-file ./manifests/numapr
 
 7. Install demo app
   a. Create argocd application 
-  b. Point the manifest to `https://github.com/numaproj/numaproj-demo/tree/main/demo-app/manifests/rollout`
+   ```bash
+    kubectl apply -n argocd -f. /manifests/numaproj-assist/argocd-app/argocd-demo-app-application.yaml
+    ```
+  b. Port forward argocd UI
+  ```bash
+  kubectl -n argocd port-forward svc/argocd-server 8080:80
+  ```
+  c. open the browser "https://localhost:8080/"
+  username is `admin`
+  To get password execute below command
+  ```
+  kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+  ```
+ d. Client the demo-app application
 
 8. Install `Numaproj Assist` related components
 
@@ -70,7 +83,7 @@ kubectl apply -k ./manifests/numaproj-assist
 
 9. Install ArgoCD numaproj Assist Backend server
 ```base
-kubectl apply -n numaproj-assist https://raw.githubusercontent.com/numaproj-labs/argocd-extn-numaproj-assist/main/manifests/install.yaml
+kubectl apply -n numaproj-assist -f https://raw.githubusercontent.com/numaproj-labs/argocd-extn-numaproj-assist/main/manifests/install.yaml
 ```
 
 ## Demo
