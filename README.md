@@ -20,8 +20,15 @@ kubectl apply -k https://github.com/numaproj/numaflow/config/advanced-install/mi
 ```
 
 2. Install Prometheus if you don't have one, and configure
+   
 
-3. Install Argo CD and Argo rollouts
+2.1. Configure the Prometheus Rule for AIOps (Please update the your Prometheus namespace)
+```bash
+kubectl apply -n monitoring -f https://github.com/numaproj/numalogic-prometheus/blob/main/manifests/prerequisites/prometheus/prometheus-rules.yaml
+```
+   
+
+4. Install Argo CD and Argo rollouts
 ```bash
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
