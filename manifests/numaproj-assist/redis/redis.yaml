@@ -5,24 +5,6 @@ metadata:
 spec:
   redis:
     native:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/component: isbsvc
-                  numaflow.numaproj.io/isbsvc-name: log-summarization
-              #topologyKey: topology.kubernetes.io/zone
-              topologyKey: kubernetes.io/hostname
-            weight: 100
-      containerTemplate:
-        resources:
-          limits:
-            memory: 2048Mi
-          requests:
-            cpu: 2
-            memory: 2048Mi
       persistence:
         accessMode: ReadWriteOnce
         volumeSize: 20Gi

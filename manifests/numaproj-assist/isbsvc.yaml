@@ -9,20 +9,3 @@ spec:
     persistence:
       accessMode: ReadWriteOnce
       volumeSize: 15Gi
-    containerTemplate:
-      resources:
-        limits:
-          memory: 3072Mi
-        requests:
-          cpu: 2
-          memory: 3072Mi
-    affinity:
-      podAntiAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/component: isbsvc
-                  numaflow.numaproj.io/isbsvc-name: default # ISB Service name.
-              topologyKey: kubernetes.io/hostname
-            weight: 100

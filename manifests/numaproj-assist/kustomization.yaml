@@ -8,6 +8,7 @@ resources:
 - redis
 - ingestor
 - isbsvc.yaml
+- https://raw.githubusercontent.com/numaproj-labs/log-summarization/main/log_summarization_pipeline.yaml
 
 namespace: numaproj-assist
 
