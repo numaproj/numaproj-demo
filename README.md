@@ -64,9 +64,13 @@ kubectl patch deployment argocd-server -n argocd --patch-file ./manifests/numapr
 8. Install `Numaproj Assist` related components
 
 ```bash
+kubectl create ns numaproj-assist
+
+# Create a Kubernetes secret for the openai api key (replace <openai-api-key> before running the following command).
+kubectl -n numaproj-assist create secret generic log-summarization-tokens --from-literal=openai-api-key='<openai-api-key>'
+
 kubectl apply -k ./manifests/numaproj-assist
 ```
-
 
 9. Install ArgoCD numaproj Assist Backend server
 ```base
