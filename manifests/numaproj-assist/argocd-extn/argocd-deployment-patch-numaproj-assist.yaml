@@ -29,7 +29,7 @@ spec:
             - name: EXTENSION_ENABLED
               value: "true"
             - name: EXTENSION_URL
-              value: https://github.com/numaproj-labs/argocd-extn-log-summary/releases/download/v0.0.1/extension.tar
+              value: https://github.com/numaproj-labs/argocd-extn-log-summary/releases/download/v0.0.1/extension.tar.gz
           image: quay.io/argoproj/argocd-extn-installer:rc7
           imagePullPolicy: Always
           volumeMounts:
@@ -38,6 +38,11 @@ spec:
           securityContext:
             runAsUser: 100
             allowPrivilegeEscalation: false
+      containers:
+        - name: argocd-server
+          volumeMounts:
+            - mountPath: /tmp/extensions/
+              name: extensions
       volumes:
       - name: extensions
         emptyDir: {}

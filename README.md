@@ -54,13 +54,14 @@ kubectl  apply -f https://raw.githubusercontent.com/numaproj/numalogic-prometheu
 ```bash
 kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-configmap.yaml
 kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-server-cm.yaml
+kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-rbac-cm.yaml
 kubectl patch deployment argocd-server -n argocd --patch-file ./manifests/numaproj-assist/argocd-extn/argocd-deployment-patch-numaproj-assist.yaml
 ```
 
 7. Install demo app
   a. Create argocd application 
    ```bash
-    kubectl apply -n argocd -f. /manifests/numaproj-assist/argocd-app/argocd-demo-app-application.yaml
+    kubectl apply -n argocd -f  ./manifests/numaproj-assist/argocd-app/argocd-demo-app-application.yaml
     ```
   b. Port forward argocd UI
   ```bash
