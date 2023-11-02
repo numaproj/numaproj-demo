@@ -21,10 +21,10 @@ kubectl apply -k https://github.com/numaproj/numaflow/config/advanced-install/mi
 
 2. Install Prometheus if you don't have one, and configure
 ```bash
-kubectl apply -k  https://raw.githubusercontent.com/numaproj/numalogic-prometheus/main/manifests/prerequisites/prometheus/install.yaml
+kubectl apply -f  https://raw.githubusercontent.com/numaproj/numalogic-prometheus/main/manifests/prerequisites/prometheus/install.yaml
 ```
 
-2.1. Configure the Prometheus Rule for AIOps (Please update the your Prometheus namespace)
+2.1. [skip if you did step 2] Configure the Prometheus Rule for AIOps (Please update the your Prometheus namespace)
 ```bash
 kubectl apply -n monitoring -f https://github.com/numaproj/numalogic-prometheus/blob/main/manifests/prerequisites/prometheus/prometheus-rules.yaml
 ```
@@ -42,19 +42,19 @@ kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/rele
 ```
 4. Install ArgoCD Metrics Server
 ```base
-kubectl -n argocd -k https://github.com/argoproj-labs/argocd-extension-metrics/manifests?ref=main
+kubectl -n argocd apply -k https://github.com/argoproj-labs/argocd-extension-metrics/manifests?ref=main
 ```
 5. Install AIOps Anomaly pipeline
 ```base
-kubectl  -k https://raw.githubusercontent.com/numaproj/numalogic-prometheus/main/manifests/pipeline/install-numalogic-rollouts.yaml
+kubectl  apply -f https://raw.githubusercontent.com/numaproj/numalogic-prometheus/main/manifests/pipeline/install-numalogic-rollouts.yaml
 ```
 
 
 6. Install ArgoCD Extension
 ```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/manifests/numaproj-assist/argocd-extn/argocd-extn-configmap.yaml
-kubectl apply -n argocd -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/manifests/numaproj-assist/argocd-extn/argocd-extn-server-cm.yaml
-kubectl patch deployment argocd-server --patch-file https://raw.githubusercontent.com/numaproj/numaproj-demo/main/manifests/numaproj-assist/argocd-extn/argocd-deployment-patch-numaproj-assist.yaml
+kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-configmap.yaml
+kubectl apply -n argocd -f ./manifests/numaproj-assist/argocd-extn/argocd-extn-server-cm.yaml
+kubectl patch deployment argocd-server -n argocd --patch-file ./manifests/numaproj-assist/argocd-extn/argocd-deployment-patch-numaproj-assist.yaml
 ```
 
 7. Install demo app
