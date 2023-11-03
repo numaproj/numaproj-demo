@@ -1,0 +1,31 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  # A pipeline to do sentiment analysis by using a hugging face model
+  name: sentiment-analysis
+spec:
+  vertices:
+    # Pipeline input, expects to receive a text.
+    - name: in
+      source:
+        http:
+          service: true
+    # Sentiment analysis, get the result
+    - name: sentiment-inference
+      scale:
+        min: 1
+      udf:
+        container:
+          image: quay.io/numaio/numaflow-demo/sentiment-analysis:v0.0.1
+          imagePullPolicy: IfNotPresent
+    # Display the sentiment in the log
+    - name: log
+      scale:
+        min: 1
+      sink:
+        log: {}
+  edges:
+    - from: in
+      to: sentiment-inference
+    - from: sentiment-inference
+      to: log
