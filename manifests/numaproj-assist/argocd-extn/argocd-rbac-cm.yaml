@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+data:
+  policy.ext-metrics.csv: |
+    p, role:readonly, extensions, invoke, metrics, allow
+    p, role:admin, extensions, invoke, metrics, allow
+    p, role:readonly, extensions, invoke, logsummary, allow
+    p, role:admin, extensions, invoke, logsummary, allow

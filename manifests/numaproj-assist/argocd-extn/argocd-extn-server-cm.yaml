@@ -9,7 +9,7 @@ data:
     - name: logsummary
       backend:
         services:
-        - url: http://log-summarization-service.numaproj-assist.svc.cluster.local:8080
+        - url: http://numaproj-assist-backend-service.numaproj-assist.svc.cluster.local:8080
 kind: ConfigMap
 metadata:
   labels:
