@@ -30,7 +30,7 @@ kubectl apply -n monitoring -f https://github.com/numaproj/numalogic-prometheus/
 ```
    
 
-4. Install Argo CD and Argo rollouts
+3. Install Argo CD and Argo rollouts
 ```bash
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
