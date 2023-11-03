@@ -46,7 +46,7 @@ kubectl -n argocd apply -k https://github.com/argoproj-labs/argocd-extension-met
 ```
 5. Install AIOps Anomaly pipeline
 ```base
-kubectl  apply -f https://raw.githubusercontent.com/numaproj/numalogic-prometheus/main/manifests/pipeline/install-numalogic-rollouts.yaml
+kubectl  apply -f https://raw.githubusercontent.com/numaproj/numalogic-prometheus/main/manifests/pipeline/install-numalogic-rollouts.yaml -n numalogic-rollouts
 ```
 
 
@@ -73,7 +73,6 @@ kubectl patch deployment argocd-server -n argocd --patch-file ./manifests/numapr
   ```
   kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
   ```
- d. Client the demo-app application
 
 8. Install `Numaproj Assist` related components
 
@@ -81,6 +80,7 @@ kubectl patch deployment argocd-server -n argocd --patch-file ./manifests/numapr
 kubectl create ns numaproj-assist
 
 # Create a Kubernetes secret for the openai api key (replace <openai-api-key> before running the following command).
+```bash
 kubectl -n numaproj-assist create secret generic log-summarization-tokens --from-literal=openai-api-key='<openai-api-key>'
 
 kubectl apply -k ./manifests/numaproj-assist
