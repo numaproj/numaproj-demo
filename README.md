@@ -90,5 +90,9 @@ kubectl apply -k ./manifests/numaproj-assist
 ```base
 kubectl apply -n numaproj-assist -f https://raw.githubusercontent.com/numaproj-labs/argocd-extn-numaproj-assist/main/manifests/install.yaml
 ```
-
+10. Open demo App
+```bash
+   kubectl port-forward svc/numalogic-demo-service 8081:8080 -n rollout-numalogic-demo
+```
+open the browser "https://localhost:8081/"
 ## Demo
