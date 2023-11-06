@@ -59,6 +59,7 @@ kubectl patch deployment argocd-server -n argocd --patch-file ./manifests/numapr
 ```
 
 7. Install demo app
+
   a. Create argocd application 
    ```bash
     kubectl apply -n argocd -f  ./manifests/numaproj-assist/argocd-app/argocd-demo-app-application.yaml
@@ -90,9 +91,10 @@ kubectl apply -k ./manifests/numaproj-assist
 ```base
 kubectl apply -n numaproj-assist -f https://raw.githubusercontent.com/numaproj-labs/argocd-extn-numaproj-assist/main/manifests/install.yaml
 ```
-10. Open demo App
+10. Open demo App and Argo CD server
 ```bash
    kubectl port-forward svc/numalogic-demo-service 8081:8080 -n rollout-numalogic-demo
 ```
-open the browser "https://localhost:8081/"
-## Demo
+Open the browser "https://localhost:8081/", then go to Argo CD, click `numalogic-rollout-demo` app, and check the summarized information in `Numaproj Assist` tab.
+
+
