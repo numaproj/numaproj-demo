@@ -1,0 +1,38 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  # A pipeline to run ollama
+  name: ollama-pipeline
+spec:
+  vertices:
+    # Pipeline input, expects to receive a text.
+    - name: in
+      source:
+        http:
+          service: true
+    # Inference, get the result
+    - name: inference
+      scale:
+        min: 1
+      udf:
+        container:
+          image: quay.io/numaio/numaproj-demo/ollama-cli:v0.1.0
+          imagePullPolicy: IfNotPresent
+      sidecars:
+        - name: ollama
+          image: ollama/ollama:latest
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "ollama pull llama2"]
+    # Display the results in the log
+    - name: log
+      scale:
+        min: 1
+      sink:
+        log: {}
+  edges:
+    - from: in
+      to: inference
+    - from: inference
+      to: log
