@@ -1,0 +1,58 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: order-analysis
+spec:
+  vertices:
+    # Pipeline input
+    - name: in
+      source:
+        kafka:
+          brokers:
+            - kafka-broker:9092
+          topic: my-topic
+          consumerGroup: my-consumer-group
+        transformer:
+          builtin:
+            name: eventTimeExtractor
+            kwargs:
+              expression: sprig.trim(string(json(payload).order_time))
+    # Order info enrichment
+    - name: enrich
+      scale:
+        min: 1
+      udf:
+        container:
+          image: quay.io/numaio/numaflow-demo/dooreats:v0.0.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - -f=enrich
+    # Aggregate data
+    - name: aggr
+      udf:
+        container:
+          image: quay.io/numaio/numaflow-demo/dooreats:v0.0.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - -f=aggr
+        groupBy:
+          window:
+            fixed:
+              length: 60s
+          keyed: true
+          storage:
+            persistentVolumeClaim:
+              volumeSize: 200Mi
+    # Display the sentiment in the log
+    - name: aggr-output
+      scale:
+        min: 1
+      sink:
+        log: {}
+  edges:
+    - from: in
+      to: enrich
+    - from: enrich
+      to: aggr
+    - from: aggr
+      to: aggr-output

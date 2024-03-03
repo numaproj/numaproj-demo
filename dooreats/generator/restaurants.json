@@ -1,0 +1,273 @@
+{
+    "rstt-001": {
+        "id": "rstt-001",
+        "name": "Le Papillon",
+        "address": "121 Rue de Charonne, 75011 Paris, France",
+        "flavor": "French",
+        "menu": [
+            {
+                "id": "rstt-001-d001",
+                "name": "Glazed Eggplant with Sweet Miso",
+                "price": 10.99
+            },
+            {
+                "id": "rstt-001-d002",
+                "name": "Dungeness Crab Souffle with lemon",
+                "price": 14.49
+            },
+            {
+                "id": "rstt-001-d003",
+                "name": "Roasted Duck Breast and Pave of Leg with Vincotto Jus",
+                "price": 12.99
+            },
+            {
+                "id": "rstt-001-d004",
+                "name": "Grilled Rack of Lamb with Pomegranate Jus and Yam Timbale",
+                "price": 18.99
+            },
+            {
+                "id": "rstt-001-d005",
+                "name": "Chocolate Terrine with Chocolate Genoise",
+                "price": 8.99
+            }
+        ]
+    },
+    "rstt-002": {
+        "id": "rstt-002",
+        "name": "Pizza Mia",
+        "address": "20 Rue Roger Verlomme, 75003 Paris, France",
+        "flavor": "Pizza",
+        "menu": [
+            {
+                "id": "rstt-002-d001",
+                "name": "Four Cheese Pizza",
+                "price": 18.99
+            },
+            {
+                "id": "rstt-002-d002",
+                "name": "Kale Pesto Pizza",
+                "price": 14.99
+            },
+            {
+                "id": "rstt-002-d003",
+                "name": "Roasted Broccoli Pizza",
+                "price": 15.49
+            },
+            {
+                "id": "rstt-002-d004",
+                "name": "Fennel Sausage Pizza",
+                "price": 17.99
+            },
+            {
+                "id": "rstt-002-d005",
+                "name": "Creat Your Own Pizza",
+                "price": 17.49
+            }
+        ]
+    },
+    "rstt-003": {
+        "id": "rstt-003",
+        "name": "Paesano Ristorante Italiano",
+        "address": "420 Rue du Chemin Vert, 75011 Paris, France",
+        "flavor": "Italian",
+        "menu": [
+            {
+                "id": "rstt-003-d001",
+                "name": "Antipasto di Mare",
+                "price": 18.95
+            },
+            {
+                "id": "rstt-003-d002",
+                "name": "Antipasto Paesano",
+                "price": 21.95
+            },
+            {
+                "id": "rstt-003-d003",
+                "name": "Linguini Casareccia Pasta",
+                "price": 15.95
+            },
+            {
+                "id": "rstt-003-d004",
+                "name": "Carpaccio",
+                "price": 16.95
+            },
+            {
+                "id": "rstt-003-d005",
+                "name": "Veal Parmigiana",
+                "price": 27.95
+            },
+            {
+                "id": "rstt-003-d006",
+                "name": "Penne Santa Rosalia",
+                "price": 15.95
+            }
+        ]
+    },
+    "rstt-004": {
+        "id": "rstt-004",
+        "name": "La Foret",
+        "address": "32 Rue Keller, 75011 Paris, France",
+        "flavor": "French",
+        "menu": [
+            {
+                "id": "rstt-004-d001",
+                "name": "Lobster tail",
+                "price": 25.99
+            },
+            {
+                "id": "rstt-004-d002",
+                "name": "Beaf Tar Tar",
+                "price": 19.49
+            },
+            {
+                "id": "rstt-004-d003",
+                "name": "Oyster Caviar",
+                "price": 15.49
+            },
+            {
+                "id": "rstt-004-d004",
+                "name": "Rack of Lamb",
+                "price": 23.49
+            },
+            {
+                "id": "rstt-004-d005",
+                "name": "Wild Boar",
+                "price": 12.89
+            },
+            {
+                "id": "rstt-004-d006",
+                "name": "Sea Scallops",
+                "price": 16.99
+            }
+        ]
+    },
+    "rstt-005": {
+        "id": "rstt-005",
+        "name": "Jack's Restaurant & Bar",
+        "address": "402 Rue du Chemin Vert, 75011 Paris, France",
+        "flavor": "American",
+        "menu": [
+            {
+                "id": "rstt-005-d001",
+                "name": "Eggs Benedict",
+                "price": 18.00
+            },
+            {
+                "id": "rstt-005-d002",
+                "name": "Two Eggs Any Style",
+                "price": 13.00
+            },
+            {
+                "id": "rstt-005-d003",
+                "name": "Hamburger & Eggs",
+                "price": 18.00
+            },
+            {
+                "id": "rstt-005-d004",
+                "name": "Corned Beef Hash",
+                "price": 18.00
+            },
+            {
+                "id": "rstt-005-d005",
+                "name": "Country Fried Steak & Eggs",
+                "price": 19.00
+            },
+            {
+                "id": "rstt-005-d006",
+                "name": "Spinach & Feta Omelet",
+                "price": 14.00
+            },
+            {
+                "id": "rstt-005-d007",
+                "name": "Spinach Artichoke Dip",
+                "price": 12.00
+            }
+        ]
+    },
+    "rstt-006": {
+        "id": "rstt-006",
+        "name": "V Shushi",
+        "address": "7 Rue de Fourcy, 75004 Paris, France",
+        "flavor": "Japanese",
+        "menu": [
+            {
+                "id": "rstt-006-d001",
+                "name": "Albacore Tataki",
+                "price": 17.99
+            },
+            {
+                "id": "rstt-006-d002",
+                "name": "Chicken Karaage",
+                "price": 8.99
+            },
+            {
+                "id": "rstt-006-d003",
+                "name": "Fried Oysters (6Pcs)",
+                "price": 10.99
+            },
+            {
+                "id": "rstt-006-d004",
+                "name": "Garlic Edamame",
+                "price": 6.99
+            },
+            {
+                "id": "rstt-006-d005",
+                "name": "Orange Salmon",
+                "price": 17.99
+            },
+            {
+                "id": "rstt-006-d006",
+                "name": "Soft Shell Crab",
+                "price": 9.99
+            },
+            {
+                "id": "rstt-006-d007",
+                "name": "Lemon Calamari",
+                "price": 10.99
+            }
+        ]
+    },
+    "rstt-007": {
+        "id": "rstt-007",
+        "name": "Uncle Jack's Pizza",
+        "address": "13 Pl. de Thorigny, 75003 Paris, France",
+        "flavor": "Pizza",
+        "menu": [
+            {
+                "id": "rstt-007-d001",
+                "name": "Cheese Pizza Gluten Free (18 inch)",
+                "price": 15.99
+            },
+            {
+                "id": "rstt-007-d002",
+                "name": "Cheese Pizza Thin Crust (16 inch)",
+                "price": 17.99
+            },
+            {
+                "id": "rstt-007-d003",
+                "name": "The Works Pizza (18 inch)",
+                "price": 17.99
+            },
+            {
+                "id": "rstt-007-d004",
+                "name": "Double Pepperoni and Bacon Pizza (16 inch)",
+                "price": 18.99
+            },
+            {
+                "id": "rstt-007-d005",
+                "name": "Garden Fresh Pizza (16 inch)",
+                "price": 15.99
+            },
+            {
+                "id": "rstt-007-d006",
+                "name": "Greek Pizza (18 inch)",
+                "price": 17.99
+            },
+            {
+                "id": "rstt-007-d007",
+                "name": "Greek Pizza (16 inch)",
+                "price": 15.99
+            }
+        ]
+    }
+}
