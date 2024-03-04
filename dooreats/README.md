@@ -4,7 +4,11 @@ This is a simple project to demonstrate how to use the [Numaflow](https://github
 
 ## Overview
 
-The demo project simulates a food delivery app, it keeps generating order information like below, streaming to a Kafka topic.
+The demo project simulates a food delivery app, it keeps generating order information, and streaming to a Kafka topic. A Numaflow pipeline is used to analyze the order information, enrich the data with restaurant information, dish prices, and then aggregate the data to calculate the total orders and the total revenue of each restaurant every N seconds. In the end, the aggregated data is sent to another data sink.
+
+To display the aggregated data, a simple log sink is also used to visualize the data.
+
+The original order information looks like this:
 
 ```json
 {
@@ -24,9 +28,60 @@ The demo project simulates a food delivery app, it keeps generating order inform
 }
 ```
 
-A Numaflow pipeline is used to analyze the order information, enrich the data with restaurant information, dish prices, and then aggregate the data to calculate the total orders as well as the total revenue of each restaurant every N seconds. In the end, the aggregated data is sent to another data sink.
+After enrichment, the data looks like below, the `restaurant_name` and `price` fields are added to the original data:
 
-To display the aggregated data, a simple log sink is also used to visualize the data.
+```json
+{
+  "id": "order-1709279048525074000-594",
+  "restaurant_id": "rstt-003",
+  "restaurant_name": "Paesano Ristorante Italiano",  -- Added
+  "order_time": "2024-02-29T23:44:08-08:00",
+  "dishes": [
+    {
+      "dish_id": "rstt-003-d003",
+      "price": 15.95,                                -- Added
+      "quantity": 1
+    },
+    {
+      "dish_id": "rstt-003-d002",
+      "price": 21.95,                                -- Added
+      "quantity": 1
+    }
+  ]
+}
+```
+
+In the end, the aggregated data looks like below (group by restaurant every 60 seconds):
+
+```json
+{
+  "start": "2024-03-04T03:49:00Z",
+  "end": "2024-03-04T03:50:00Z",
+  "restaurant_name": "Paesano Ristorante Italiano",
+  "order_count": 3,
+  "total_amount": 83.75
+}
+```
+
+```json
+{
+  "start": "2024-03-04T03:49:00Z",
+  "end": "2024-03-04T03:50:00Z",
+  "restaurant_name": "Le Papillon",
+  "order_count": 6,
+  "total_amount": 138.39
+}
+```
+
+```json
+{
+  "start": "2024-03-04T03:49:00Z",
+  "end": "2024-03-04T03:50:00Z",
+  "restaurant_name": "Jack's Restaurant & Bar",
+  "order_count": 4,
+  "total_amount": 176
+}
+```
 
 ## Pipeline
 
