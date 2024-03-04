@@ -6,6 +6,8 @@ spec:
   vertices:
     # Pipeline input
     - name: in
+      scale:
+        min: 1
       source:
         kafka:
           brokers:
@@ -43,8 +45,17 @@ spec:
           storage:
             persistentVolumeClaim:
               volumeSize: 200Mi
-    # Display the sentiment in the log
-    - name: aggr-output
+    # Send the aggregated info to another Kafka topic
+    - name: aggr-kafka-output
+      scale:
+        min: 1
+      sink:
+        kafka:
+          brokers:
+            - kafka-broker:9092
+          topic: my-topic-output
+    # Display the aggregated info in the log
+    - name: aggr-log-output
       scale:
         min: 1
       sink:
@@ -55,4 +66,6 @@ spec:
     - from: enrich
       to: aggr
     - from: aggr
-      to: aggr-output
+      to: aggr-kafka-output
+    - from: aggr
+      to: aggr-log-output

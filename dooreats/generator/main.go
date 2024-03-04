@@ -100,6 +100,11 @@ func main() {
 		log.Panic(err)
 	}
 
+	// Create the output topic as well
+	if err := createTopicIfNotExist([]string{broker}, topic+"-output"); err != nil {
+		log.Panic(err)
+	}
+
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 
