@@ -69,13 +69,14 @@ func enrich(_ context.Context, keys []string, msg mapper.Datum) mapper.Messages 
 		price := gjson.Get(restaurants, fmt.Sprintf(`%s.menu.#(id=="%s").price`, restaurantID, dishID)).Float()
 		enrichedOrder, _ = sjson.SetBytes(enrichedOrder, fmt.Sprintf("dishes.%v.price", i), price)
 	}
+
+	log.Println("Enriched order: ", string(enrichedOrder))
 	results = append(results, mapper.NewMessage(enrichedOrder).WithKeys([]string{restaurantName}))
 	return results
 }
 
 // Aggregate the order info to count the number of orders and calculate the total amount
-func aggregate(_ context.Context, keys []string, msgCh <-chan reducer.Datum,
-	md reducer.Metadata) reducer.Messages {
+func aggregate(_ context.Context, keys []string, msgCh <-chan reducer.Datum, md reducer.Metadata) reducer.Messages {
 	restaurantName := keys[0]
 	var orderCounter = 0
 	var amount = float64(0)
@@ -97,6 +98,7 @@ func aggregate(_ context.Context, keys []string, msgCh <-chan reducer.Datum,
 	result, _ = sjson.Set(result, "order_count", orderCounter)
 	result, _ = sjson.Set(result, "total_amount", amount)
 
+	log.Println("Aggregated result:", result)
 	return messages.Append(reducer.NewMessage([]byte(result)))
 }
 
