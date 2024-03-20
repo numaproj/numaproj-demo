@@ -93,6 +93,7 @@ To run the demo project, you need to have a Kubernetes cluster and the `kubectl`
 
 ```bash
 # Install Numaflow if you haven't
+kubectl create ns numaflow-system
 kubectl apply -n numaflow-system -f https://github.com/numaproj/numaflow/releases/download/v1.1.6/install.yaml
 
 # Install the ISB Service
@@ -101,11 +102,11 @@ kubectl apply -f https://raw.githubusercontent.com/numaproj/numaflow/stable/exam
 # Install a Kafka service
 kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/kafka.yaml
 
-# Install the data analysis pipeline
-kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/pipeline.yaml
-
 # Install the order info generator
 kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/order-gen.yaml
+
+# Install the data analysis pipeline
+kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/pipeline.yaml
 ```
 
 ## UI
