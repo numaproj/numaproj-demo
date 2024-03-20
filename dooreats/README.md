@@ -116,3 +116,14 @@ kubectl -n numaflow-system port-forward svc/numaflow-server 8443
 ```
 
 Access the UI at https://localhost:8443 to see the pipeline running.
+
+## Cleanup
+
+```bash
+kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/pipeline.yaml
+kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/order-gen.yaml
+kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/kafka.yaml
+kubectl delete -f https://raw.githubusercontent.com/numaproj/numaflow/stable/examples/0-isbsvc-jetstream.yaml
+kubectl delete -n numaflow-system -f https://github.com/numaproj/numaflow/releases/download/v1.1.6/install.yaml
+kubectl delete ns numaflow-system
+```
