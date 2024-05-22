@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "sentiment-analysis"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 authors = ["Numaflow developers"]
 
 [tool.poetry.dependencies]
 python = "~3.10"
-pynumaflow = "~0.5.0"
+pynumaflow = "~0.7.0"
 requests = "2.27.1" 
 transformers = "~4.34"
 torch = "1.12.1"

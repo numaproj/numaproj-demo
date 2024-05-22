@@ -1,11 +1,11 @@
-from pynumaflow.mapper import Messages, Message, Datum, Mapper
+from pynumaflow.mapper import Messages, Message, Datum, MapServer, Mapper
 from transformers import pipeline
 import json
 import os
 
 os.environ['CURL_CA_BUNDLE'] = ''
 
-class SentimentAnalyzer:
+class SentimentAnalyzer(Mapper):
     def __init__(self):
         self.analyzer = pipeline("sentiment-analysis")
 
@@ -25,6 +25,5 @@ class SentimentAnalyzer:
         return messages
 
 if __name__ == "__main__":
-    sa = SentimentAnalyzer()
-    grpc_server = Mapper(handler=sa.handler)
+    grpc_server = MapServer(SentimentAnalyzer())
     grpc_server.start()
