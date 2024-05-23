@@ -16,7 +16,7 @@ spec:
         min: 1
       udf:
         container:
-          image: quay.io/numaio/numaflow-demo/sentiment-analysis:v0.0.4
+          image: quay.io/numaio/numaflow-demo/sentiment-analysis:v0.0.6
           imagePullPolicy: IfNotPresent
     # Display the sentiment in the log
     - name: log

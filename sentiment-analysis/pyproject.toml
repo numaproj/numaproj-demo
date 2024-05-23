@@ -6,9 +6,9 @@ authors = ["Numaflow developers"]
 
 [tool.poetry.dependencies]
 python = "~3.10"
-pynumaflow = "~0.5.0"
+pynumaflow = "~0.7.0"
 requests = "2.27.1" 
-transformers = "~4.34"
+transformers = "~4.41"
 torch = "1.12.1"
 
 
