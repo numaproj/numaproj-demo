@@ -1,6 +1,9 @@
 from pynumaflow.mapper import Messages, Message, Datum, Mapper
 from transformers import pipeline
 import json
+import os
+
+os.environ['CURL_CA_BUNDLE'] = ''
 
 class SentimentAnalyzer:
     def __init__(self):

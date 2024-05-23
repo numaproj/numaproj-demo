@@ -17,4 +17,4 @@ demo-app/vendor/
 .idea/
 numalogic-demo
 /main
-
+**/dist/
