@@ -4,36 +4,52 @@ Demo project for Numaflow serving
 ## Steps to Run the Ascii Art Serving Demo
 
 ### Step 1: Create local cluster
-```sh
+
+Choose either K3D or Kind.
+
+#### Create K3D local cluster
+```shell
 # k3d
 k3d cluster create
 
+```
+
+#### Create Kind local cluster
+```shell
 # kind
 kind create cluster
 ```
 
 ### Step 2: Setup Numaflow
 
-```sh
+#### Step 2.a Checkout Numaflow
+
+```shell
 git clone https://github.com/numaproj/numaflow.git # if you haven't already cloned the repo
 cd numaflow
 git checkout main
 make start
 ```
 
-### Step 3: Create Redis and Jetstream
+#### Step 2.b Deploy ISB
 
 ```shell
 kubectl apply -f examples/0-isbsvc-jetstream.yaml
-kubectl apply -f manifests/redis-minimal.yaml
 ```
 
-### Step 4: Clone the numaproj-demo repo
+### Step 3: Clone the numaproj-demo repo
 
 ```shell
 git clone https:://github.com/numaproj/numaproj-demo.git
 cd numaproj-demo/serving-demo
 ```
+
+### Step 4: Create Redis 
+
+```shell
+kubectl apply -f manifests/redis-minimal.yaml
+```
+
 
 ### Step 5: Build and import images
 ```shell
