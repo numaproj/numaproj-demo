@@ -94,7 +94,7 @@ To run the demo project, you need to have a Kubernetes cluster and the `kubectl`
 ```bash
 # Install Numaflow if you haven't
 kubectl create ns numaflow-system
-kubectl apply -n numaflow-system -f https://github.com/numaproj/numaflow/releases/download/v1.1.6/install.yaml
+kubectl apply -n numaflow-system -f https://github.com/numaproj/numaflow/releases/download/v1.3.3/install.yaml
 
 # Install the ISB Service
 kubectl apply -f https://raw.githubusercontent.com/numaproj/numaflow/stable/examples/0-isbsvc-jetstream.yaml
@@ -124,6 +124,6 @@ kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/
 kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/order-gen.yaml
 kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/kafka.yaml
 kubectl delete -f https://raw.githubusercontent.com/numaproj/numaflow/stable/examples/0-isbsvc-jetstream.yaml
-kubectl delete -n numaflow-system -f https://github.com/numaproj/numaflow/releases/download/v1.1.6/install.yaml
+kubectl delete -n numaflow-system -f https://github.com/numaproj/numaflow/releases/download/v1.3.3/install.yaml
 kubectl delete ns numaflow-system
 ```

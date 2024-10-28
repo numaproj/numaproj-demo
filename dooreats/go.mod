@@ -1,10 +1,10 @@
 module dooreats
 
-go 1.21.4
+go 1.23.1
 
 require (
 	github.com/IBM/sarama v1.43.0
-	github.com/numaproj/numaflow-go v0.6.0
+	github.com/numaproj/numaflow-go v0.8.1
 	github.com/tidwall/gjson v1.17.1
 	github.com/tidwall/sjson v1.2.5
 )
