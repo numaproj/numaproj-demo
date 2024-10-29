@@ -40,7 +40,7 @@ kubectl apply -f examples/0-isbsvc-jetstream.yaml
 ### Step 3: Clone the numaproj-demo repo
 
 ```shell
-git clone https:://github.com/numaproj/numaproj-demo.git
+git clone https://github.com/numaproj/numaproj-demo.git
 cd numaproj-demo/serving-demo
 ```
 
