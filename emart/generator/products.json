@@ -1,0 +1,335 @@
+{
+    "cate-001": {
+        "id": "cate-001",
+        "name": "Women's Clothing",
+        "products": [
+            {
+                "id": "p-001-0001",
+                "name": "Quince Women's Black Ultra-Stretch Ponte Blazer sz L NWT Career Business",
+                "price": 24.97
+            },
+            {
+                "id": "p-001-0002",
+                "name": "Wild Fable Women's Button Up Winter Faux Shearling Jacket",
+                "price": 16.99
+            },
+            {
+                "id": "p-001-0003",
+                "name": "Women's Faux Croc Trench Coat - A New Day Burgundy M",
+                "price": 12.99
+            },
+            {
+                "id": "p-001-0004",
+                "name": "Winter Women Parka Hooded Fleece Padded Warm Coat Ladies Fur Jacket Outwear",
+                "price": 22.99
+            },
+            {
+                "id": "p-001-0005",
+                "name": "NWOT Johnny Was Golden Velvet Open Cardigan Duster Kimono Embroidery Coat",
+                "price": 47.99
+            },
+            {
+                "id": "p-001-0006",
+                "name": "Columbia Breast Cancer Pink Fleece Vest, The Breast Cancer Site, NEW, Large",
+                "price": 14.97
+            },
+            {
+                "id": "p-001-0007",
+                "name": "Casual Express Cover Up Duster Cardigan Gray Embroidered Flare Sleeve Sz S",
+                "price": 16.99
+            }
+        ]
+    },
+    "cate-002": {
+        "id": "cate-002",
+        "name": "Men's Clothing",
+        "products": [
+            {
+                "id": "p-002-0001",
+                "name": "Mens Under Armour UA Challenger Jacket",
+                "price": 29.86
+            },
+            {
+                "id": "p-002-0002",
+                "name": "Men Knitted Cardigan Jacket Slim Long Sleeve Casual Sweater Coat Blazer Knitwear",
+                "price": 35.88
+            },
+            {
+                "id": "p-002-0003",
+                "name": "New Fashion Warm Sweater Men's Thickened Patchwork Sweater Base Sweater Pullover",
+                "price": 26.52
+            },
+            {
+                "id": "p-002-0004",
+                "name": "Star Wars Men's Pullover Fleece Crewneck Sweater Darth Vader Santa Heavyweight",
+                "price": 12.99
+            },
+            {
+                "id": "p-002-0005",
+                "name": "SNAP ON FULL ZIP UP HOODIE X-LARGE",
+                "price": 35.99
+            },
+            {
+                "id": "p-002-0006",
+                "name": "Men's Pure Mink Cashmere Turtleneck Sweater Long-sleeved Casual Undershirts Tops",
+                "price": 35.99
+            },
+            {
+                "id": "p-002-0007",
+                "name": "St Michael Cable Knit Wool Turtleneck Sweater Size 44",
+                "price": 15.00
+            }
+        ]
+    },
+    "cate-003": {
+        "id": "cate-003",
+        "name": "Health & Beauty",
+        "products": [
+            {
+                "id": "p-003-0001",
+                "name": "Armaf Club De Nuit Intense 3.6 fl oz Men's Eau de Toilette",
+                "price": 26.85
+            },
+            {
+                "id": "p-003-0002",
+                "name": "Dolce&Gabbana Light Blue 4.2oz Men's Eau de Toilette",
+                "price": 28.00
+            },
+            {
+                "id": "p-003-0003",
+                "name": "K18 Leave-In Molecular Repair Hair Mask - 1.7 fl oz",
+                "price": 9.99
+            },
+            {
+                "id": "p-003-0004",
+                "name": "Nautica Voyage 3.4oz Men's Eau de Toilette",
+                "price": 17.77
+            },
+            {
+                "id": "p-003-0005",
+                "name": "Nutricost Creatine Monohydrate Micronized Powder 500G",
+                "price": 13.86
+            },
+            {
+                "id": "p-003-0006",
+                "name": "Voltaren Arthritis Pain Gel Tube - 1.7oz",
+                "price": 12.99
+            },
+            {
+                "id": "p-003-0007",
+                "name": "Better Body Co. Provitalize Best Natural Weight Management Probiotic - 60 Capsules",
+                "price": 39.99
+            }
+        ]
+    },
+    "cate-004": {
+        "id": "cate-004",
+        "name": "Home & Garden",
+        "products": [
+            {
+                "id": "p-004-0001",
+                "name": "Plug in Night Light with Manual On/Off Switch - Includes 4W Bulb, 4 Pack",
+                "price": 10.99
+            },
+            {
+                "id": "p-004-0002",
+                "name": "Colorful Animal Table Lamp Stained Night Light Resin Animal Desk Lamp Turtles US",
+                "price": 17.95
+            },
+            {
+                "id": "p-004-0003",
+                "name": "Outdoor Christmas Decorations 344 LED Star Lights Easy Installation & Waterproof",
+                "price": 11.50
+            },
+            {
+                "id": "p-004-0004",
+                "name": "Star Projector Galaxy Night Light - Astronaut Space Buddy Projector with Remote",
+                "price": 13.89
+            },
+            {
+                "id": "p-004-0005",
+                "name": "Lined Knitted CHRISTMAS STOCKING by Hearth & Hand with Magnolia (116)",
+                "price": 14.99
+            },
+            {
+                "id": "p-004-0006",
+                "name": "Faux Fur Christmas Tree Skirt, White Xmas Decorations for 6ft Christmas Tree",
+                "price": 17.99
+            },
+            {
+                "id": "p-004-0007",
+                "name": "Christmas Stockings Unique",
+                "price": 20.00
+            },
+            {
+                "id": "p-004-0008",
+                "name": "NFL Advent Calendar 2024 New Advent Calendars",
+                "price": 20.56
+            }
+        ]
+    },
+    "cate-005": {
+        "id": "cate-005",
+        "name": "Sports Goods",
+        "products": [
+            {
+                "id": "p-005-0001",
+                "name": "Lixada Climbing Ascender 8-13MM for Tree Climbing Single Rope Climbing Y2C4",
+                "price": 15.92
+            },
+            {
+                "id": "p-005-0002",
+                "name": "10pcs Heavy Duty Alloy Carabiners, Durable Clip Buckle, Perfect For Camping -NEW",
+                "price": 6.98
+            },
+            {
+                "id": "p-005-0003",
+                "name": "Wild Country Ropeman 1 Ascender - Climbing, Saddle Hunting",
+                "price": 54.95
+            },
+            {
+                "id": "p-005-0004",
+                "name": "Pro Safety Rock Climbing Caving Arborist Tree Rappelling Harness Seat Waist Belt",
+                "price": 14.99
+            },
+            {
+                "id": "p-005-0005",
+                "name": "DMM Shadow Bent Gate Carabiner Blue/Titanium Pack Of 5",
+                "price": 29.99
+            },
+            {
+                "id": "p-005-0006",
+                "name": "6180Lbs Breaking Strength Bull Rope 1/2Inch Diameter Double Braid Polyester Rope",
+                "price": 30.44
+            },
+            {
+                "id": "p-005-0007",
+                "name": "KAVU Original Rope Sling Pack with Adjustable One Size, Jet Black",
+                "price": 15.00
+            }
+        ]
+    },
+    "cate-006": {
+        "id": "cate-006",
+        "name": "Women's Shoes",
+        "products": [
+            {
+                "id": "p-006-0001",
+                "name": "Women's Betsy Clog Mule Flats - Universal Thread",
+                "price": 17.99
+            },
+            {
+                "id": "p-006-0002",
+                "name": "Womens Bow Faux Suede Shallow Slip On Soft Flats Peas Shoes Moccasin Loafers",
+                "price": 25.89
+            },
+            {
+                "id": "p-006-0003",
+                "name": "Solemates Comfy Office / Travel Ballet Flats for Women w Compact Carrying Tote",
+                "price": 21.99
+            },
+            {
+                "id": "p-006-0004",
+                "name": "Women Pump Soft Sole Faux Suede Flower Loafers Ballet Flats Ballerina Flat Shoes",
+                "price": 19.59
+            },
+            {
+                "id": "p-006-0005",
+                "name": "Women Sports Shoes Slip-On Comfort Summer Breathable Sneakers Loafers Flats Walk",
+                "price": 28.69
+            },
+            {
+                "id": "p-006-0006",
+                "name": "JSport Women's Alice Faux Fur Slip-On Winter Shoes Brown - NEW!!",
+                "price": 36.99
+            },
+            {
+                "id": "p-006-0007",
+                "name": "JSport Ladies' Brown Alice Slip-On Women's Faux Fur Flats Shoes - New w/ Box",
+                "price": 24.99
+            }
+        ]
+    },
+    "cate-007": {
+        "id": "cate-007",
+        "name": "Men's Shoes",
+        "products": [
+            {
+                "id": "p-007-0001",
+                "name": "HEYDUDE Wally Stretch - Mens Comfortable Slip on Shoes",
+                "price": 23.99
+            },
+            {
+                "id": "p-007-0002",
+                "name": "Crocs Men's and Women's Shoes - Bayaband Clogs, Slip On Water Shoes",
+                "price": 37.99
+            },
+            {
+                "id": "p-007-0003",
+                "name": "PUMA Men's Cool Cat 2.0 Sandals",
+                "price": 14.99
+            },
+            {
+                "id": "p-007-0004",
+                "name": "British Mens Tassel Flat Casual Loafers Dress Oxford Faux Leather Business Shoes",
+                "price": 34.40
+            },
+            {
+                "id": "p-007-0005",
+                "name": "Vans Mountain Mule Slip On Casual Shoe Slipper Slide Quilted Black Mens Size NEW",
+                "price": 31.49
+            },
+            {
+                "id": "p-007-0006",
+                "name": "Aldo Reid Mens Sneaker Black Size 8 M",
+                "price": 33.00
+            },
+            {
+                "id": "p-007-0007",
+                "name": "Skechers Men's Relaxed Roomier Fit Memory Foam Slip On Comfort Canvas Shoe",
+                "price": 36.99
+            }
+        ]
+    },
+    "cate-008": {
+        "id": "cate-008",
+        "name": "Books",
+        "products": [
+            {
+                "id": "p-008-0001",
+                "name": "Good Energy by Dr. Casey Means NEW Paperback",
+                "price": 14.38
+            },
+            {
+                "id": "p-008-0002",
+                "name": "The Courage To Be Disliked by Ichiro Kishmi and Fumitake Koga USA Stock",
+                "price": 9.99
+            },
+            {
+                "id": "p-008-0003",
+                "name": "From Here to the Great Unknown: A Memoir by Lisa Marie Presley Hardcover Book",
+                "price": 22.00
+            },
+            {
+                "id": "p-008-0004",
+                "name": "Don't Believe Everything You Think by Joseph Nguyen Why Your Thinking Is The Beg",
+                "price": 7.39
+            },
+            {
+                "id": "p-008-0005",
+                "name": "Ego is the Enemy : The Fight to Master By Ryan Holiday , Paperback",
+                "price": 8.98
+            },
+            {
+                "id": "p-008-0006",
+                "name": "System Design Interview An insider's guide By Alex Xu 2nd Edition Paperback",
+                "price": 9.98
+            },
+            {
+                "id": "p-008-0007",
+                "name": "Nexus A Brief History of Information Networks AI by Yuval PAPERBACK -1 day ship",
+                "price": 13.75
+            }
+        ]
+    }
+}

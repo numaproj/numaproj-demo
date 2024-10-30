@@ -1,0 +1,71 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: emart-order-analysis
+spec:
+  vertices:
+    # Pipeline input
+    - name: in
+      scale:
+        min: 1
+      source:
+        kafka:
+          brokers:
+            - kafka-broker:9092
+          topic: my-emart-topic
+          consumerGroup: my-consumer-group
+        transformer:
+          builtin:
+            name: eventTimeExtractor
+            kwargs:
+              expression: sprig.trim(string(json(payload).order_time))
+    # Order info enrichment and flatmap
+    - name: flatmap
+      scale:
+        min: 1
+      udf:
+        container:
+          image: quay.io/numaio/numaflow-demo/emart:v0.0.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - -f=flatmap
+    # Aggregate data
+    - name: aggr
+      udf:
+        container:
+          image: quay.io/numaio/numaflow-demo/emart:v0.0.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - -f=aggr
+        groupBy:
+          window:
+            fixed:
+              length: 60s
+          keyed: true
+          storage:
+            persistentVolumeClaim:
+              volumeSize: 200Mi
+    # Send the aggregated info to another Kafka topic
+    - name: kafka-output
+      scale:
+        min: 1
+      sink:
+        kafka:
+          brokers:
+            - kafka-broker:9092
+          topic: my-emart-topic-output
+    # Display the aggregated info in the log
+    - name: log-output
+      scale:
+        min: 1
+      sink:
+        log: {}
+  edges:
+    - from: in
+      to: flatmap
+    - from: flatmap
+      to: aggr
+    - from: aggr
+      to: kafka-output
+    - from: aggr
+      to: log-output

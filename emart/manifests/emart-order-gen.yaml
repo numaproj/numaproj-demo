@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: emart-order-gen
+spec:
+  containers:
+    - args:
+        - -broker=kafka-broker:9092
+        - -topic=my-emart-topic
+      image: quay.io/numaio/numaflow-demo/emart-order-gen:v0.0.1
+      imagePullPolicy: IfNotPresent
+      name: main
