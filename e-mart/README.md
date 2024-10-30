@@ -59,6 +59,7 @@ After enrichment and map operation, some fields are added to the original data, 
     }
   ]
 }
+```
 
 ```json
 // Message 2
