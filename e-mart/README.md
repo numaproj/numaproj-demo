@@ -37,7 +37,7 @@ The original order information looks like this:
 
 After enrichment and map operation, some fields are added to the original data, and flatmapped to multiple messages:
 
-````json
+```json
 // Message 1
 {
   "order_id": "order-1730318669701322420-175",
@@ -95,7 +95,7 @@ After enrichment and map operation, some fields are added to the original data, 
     }
   ]
 }
-````
+```
 
 In the end, the aggregated data looks like below (group by category every 60 seconds):
 
