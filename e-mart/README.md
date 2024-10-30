@@ -35,7 +35,7 @@ The original order information looks like this:
 }
 ```
 
-After enrichment and map operation, some fields are added to the original data, and flatmapped to multiple messages:
+After enrichment in the map operation, some properties are added to the original data, and flatmap to multiple messages:
 
 ```json
 // Message 1
