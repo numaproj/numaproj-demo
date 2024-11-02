@@ -121,7 +121,7 @@ In the end, the aggregated data looks like below (group by category every 60 sec
 
 ## Pipeline
 
-![Pipeline Topology](pipeline-topology.png)
+![Pipeline Topology](pipeline.png)
 
 ## Installation
 
@@ -136,13 +136,13 @@ kubectl apply -n numaflow-system -f https://github.com/numaproj/numaflow/release
 kubectl apply -f https://raw.githubusercontent.com/numaproj/numaflow/stable/examples/0-isbsvc-jetstream.yaml
 
 # Install a Kafka service
-kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/emart/manifests/kafka.yaml
+kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/e-mart/manifests/kafka.yaml
 
 # Install the order info generator
-kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/emart/manifests/emart-order-gen.yaml
+kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/e-mart/manifests/emart-order-gen.yaml
 
 # Install the data analysis pipeline
-kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/emart/manifests/pipeline.yaml
+kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/e-mart/manifests/pipeline.yaml
 ```
 
 ## UI
@@ -156,9 +156,9 @@ Access the UI at https://localhost:8443 to see the pipeline running.
 ## Cleanup
 
 ```bash
-kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/pipeline.yaml
-kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/order-gen.yaml
-kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/dooreats/manifests/kafka.yaml
+kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/e-mart/manifests/pipeline.yaml
+kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/e-mart/manifests/emart-order-gen.yaml
+kubectl delete -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/e-mart/manifests/kafka.yaml
 kubectl delete -f https://raw.githubusercontent.com/numaproj/numaflow/stable/examples/0-isbsvc-jetstream.yaml
 kubectl delete -n numaflow-system -f https://github.com/numaproj/numaflow/releases/download/v1.3.3/install.yaml
 kubectl delete ns numaflow-system
