@@ -6,8 +6,6 @@ This is a simple project to demonstrate how to use the [Numaflow](https://github
 
 The demo project simulates an e-commerce platform, it keeps generating order information, and streaming to a Kafka topic. A Numaflow pipeline is used to analyze the order information, enrich the data with product information, prices, flatmap the order to multiple messages in different categories, and then aggregate the data to calculate the sold products and the total revenue of each category every N seconds. In the end, the aggregated data is sent to some other data sinks.
 
-A optinal Grafana sink is also used to visualize the data, otherwise the data can be visualized by the log sink in console logs.
-
 The original order information looks like this:
 
 ```json
@@ -143,17 +141,8 @@ kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/e
 # Install the order info generator
 kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/emart/manifests/emart-order-gen.yaml
 
-# Install the data analysis pipeline without Grafana sink
+# Install the data analysis pipeline
 kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/emart/manifests/pipeline.yaml
-
-# Install the Grafana
-# TODO
-
-# Grafana config
-# TODO
-
-# Install the data analysis pipeline with Grafana sink
-kubectl apply -f https://raw.githubusercontent.com/numaproj/numaproj-demo/main/emart/manifests/pipeline-w-grafana-sink.yaml
 ```
 
 ## UI
