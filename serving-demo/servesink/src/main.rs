@@ -2,12 +2,19 @@ use numaflow::sink;
 use numaflow::sink::{Response, SinkRequest};
 use reqwest::Client;
 use tracing::{error, warn};
+use tracing_subscriber::prelude::*;
 
 const NUMAFLOW_CALLBACK_URL_HEADER: &str = "X-Numaflow-Callback-Url";
 const NUMAFLOW_ID_HEADER: &str = "X-Numaflow-Id";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
+        )
+        .with(tracing_subscriber::fmt::layer().with_ansi(false))
+        .init();
     sink::Server::new(ServeSink::new()).start().await
 }
 

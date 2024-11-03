@@ -10,6 +10,8 @@ spec:
           numaflow.numaproj.io/callback: "true"
   vertices:
     - name: in
+      containerTemplate:
+        imagePullPolicy: Never
       scale:
         min: 1
       source:
@@ -20,57 +22,75 @@ spec:
             url: "redis://redis:6379"
 
     - name: planner
+      containerTemplate:
+        imagePullPolicy: Never
       scale:
         min: 1
       udf:
         container:
           image: ascii:0.1
+          imagePullPolicy: Never
           args:
             - planner
 
     - name: tiger
+      containerTemplate:
+        imagePullPolicy: Never
       scale:
         min: 1
       udf:
         container:
           image: ascii:0.1
+          imagePullPolicy: Never
           args:
             - tiger
 
     - name: dog
+      containerTemplate:
+        imagePullPolicy: Never
       scale:
         min: 1
       udf:
         container:
           image: ascii:0.1
+          imagePullPolicy: Never
           args:
             - dog
 
     - name: elephant
+      containerTemplate:
+        imagePullPolicy: Never
       scale:
         min: 1
       udf:
         container:
           image: ascii:0.1
+          imagePullPolicy: Never
           args:
             - elephant
 
     - name: asciiart
+      containerTemplate:
+        imagePullPolicy: Never
       scale:
         min: 1
       udf:
         container:
           image: ascii:0.1
+          imagePullPolicy: Never
           args:
             - asciiart
 
     - name: serve-sink
+      containerTemplate:
+        imagePullPolicy: Never
       scale:
         min: 1
       sink:
         udsink:
           container:
             image: servesink:0.1
+            imagePullPolicy: Never
             env:
               - name: NUMAFLOW_CALLBACK_URL_KEY
                 value: "X-Numaflow-Callback-Url"
@@ -78,12 +98,15 @@ spec:
                 value: "X-Numaflow-Id"
 
     - name: error-sink
+      containerTemplate:
+        imagePullPolicy: Never
       scale:
         min: 1
       sink:
         udsink:
           container:
             image: servesink:0.1
+            imagePullPolicy: Never
             env:
               - name: NUMAFLOW_CALLBACK_URL_KEY
                 value: "X-Numaflow-Callback-Url"

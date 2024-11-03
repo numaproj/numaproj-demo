@@ -140,11 +140,11 @@ curl -L -k 'https://localhost:8444/v1/process/sync_serve' \
 
 #### Send async requests
 ```shell
-curl -H "X-Numaflow-Id: $(uuidgen)" -H 'Content-Type: image/png' -XPOST -T example/demo-ascii-art/src/udfs/assets/numa-512.png -k  https://localhost:8443/v1/process/async | jq
+curl -H "X-Numaflow-Id: $(uuidgen)" -H 'Content-Type: image/png' -XPOST -T example/demo-ascii-art/src/udfs/assets/numa-512.png -k  https://localhost:8444/v1/process/async | jq
 ```
 
 Then using the id we can track the status of the request (replace ${id} with the id from the previous response). The response will give you the adjacency list of the path in the DAG that the request took.
 
 ```shell
-curl -k 'https://localhost:8443/v1/process/message?id=${id}' | jq
+curl -k 'https://localhost:8444/v1/process/message?id=${id}' | jq
 ```
