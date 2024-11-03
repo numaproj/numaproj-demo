@@ -40,20 +40,20 @@ After enrichment in the map operation, some properties are added to the original
 {
   "order_id": "order-1730318669701322420-175",
   "order_time": "2024-10-30T20:04:29Z",
-  "category_id": "cate-007",                                                   -- Added
-  "category_name": "Men's Shoes",                                              -- Added
+  "category_id": "cate-007",                                              -- Added
+  "category_name": "Men's Shoes",                                         -- Added
   "items": [
     {
       "product_id": "p-007-0001",
-      "name": "HEYDUDE Wally Stretch - Mens Comfortable Slip on Shoes",        -- Added
+      "name": "HEYDUDE Wally Stretch - Mens Comfortable Slip on Shoes",   -- Added
       "quantity": 1,
-      "price": 23.99
+      "price": 23.99                                                      -- Added
     },
     {
       "product_id": "p-007-0005",
-      "name": "Vans Mountain Mule Slip On Casual Shoe",                        -- Added
+      "name": "Vans Mountain Mule Slip On Casual Shoe",                   -- Added
       "quantity": 1,
-      "price": 31.49
+      "price": 31.49                                                      -- Added
     }
   ]
 }
@@ -64,14 +64,14 @@ After enrichment in the map operation, some properties are added to the original
 {
   "order_id": "order-1730318669701322420-175",
   "order_time": "2024-10-30T20:04:29Z",
-  "category_id": "cate-005",                                                   -- Added
-  "category_name": "Sports Goods",                                             -- Added
+  "category_id": "cate-005",                                              -- Added
+  "category_name": "Sports Goods",                                        -- Added
   "items": [
     {
       "product_id": "p-005-0006",
-      "name": "6180Lbs Breaking Strength Bull Rope 1/2Inch Diameter",          -- Added
+      "name": "6180Lbs Breaking Strength Bull Rope 1/2Inch Diameter",     -- Added
       "quantity": 1,
-      "price": 30.44
+      "price": 30.44                                                      -- Added
     }
   ]
 }
@@ -82,14 +82,14 @@ After enrichment in the map operation, some properties are added to the original
 {
   "order_id": "order-1730318669701322420-175",
   "order_time": "2024-10-30T20:04:29Z",
-  "category_id": "cate-002",                                                   -- Added
-  "category_name": "Men's Clothing",                                           -- Added
+  "category_id": "cate-002",                                              -- Added
+  "category_name": "Men's Clothing",                                      -- Added
   "items": [
     {
       "product_id": "p-002-0006",
-      "name": "Men's Pure Mink Cashmere Turtleneck Sweater Long-sleeved",      -- Added
+      "name": "Men's Pure Mink Cashmere Turtleneck Sweater Long-sleeved", -- Added
       "quantity": 1,
-      "price": 35.99
+      "price": 35.99                                                      -- Added
     }
   ]
 }
