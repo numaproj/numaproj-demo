@@ -1,20 +1,17 @@
 use numaflow::sink;
 use numaflow::sink::{Response, SinkRequest};
 use reqwest::Client;
-use tracing::{error, warn};
-use tracing_subscriber::prelude::*;
+use tracing::{error, info, warn};
+use tracing_subscriber;
 
 const NUMAFLOW_CALLBACK_URL_HEADER: &str = "X-Numaflow-Callback-Url";
 const NUMAFLOW_ID_HEADER: &str = "X-Numaflow-Id";
+const ENV_NUMAFLOW_CALLBACK_URL_KEY: &str = "NUMAFLOW_CALLBACK_URL_KEY";
+const ENV_NUMAFLOW_MESSAGE_ID_KEY: &str = "NUMAFLOW_MESSAGE_ID_KEY";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
-        )
-        .with(tracing_subscriber::fmt::layer().with_ansi(false))
-        .init();
+    tracing_subscriber::fmt::init();
     sink::Server::new(ServeSink::new()).start().await
 }
 
@@ -27,12 +24,17 @@ struct ServeSink {
 impl ServeSink {
     fn new() -> Self {
         // extract the callback url key from the environment
-        let callback_url_key = std::env::var("NUMAFLOW_CALLBACK_URL_KEY")
+        let callback_url_key = std::env::var(ENV_NUMAFLOW_CALLBACK_URL_KEY)
             .unwrap_or_else(|_| NUMAFLOW_CALLBACK_URL_HEADER.to_string());
 
         // extract the message id key from the environment
-        let message_id_key = std::env::var("NUMAFLOW_MESSAGE_ID_KEY")
+        let message_id_key = std::env::var(ENV_NUMAFLOW_MESSAGE_ID_KEY)
             .unwrap_or_else(|_| NUMAFLOW_ID_HEADER.to_string());
+
+        info!(
+            "Callback URL key: {}, Message ID key: {}",
+            callback_url_key, message_id_key
+        );
 
         Self {
             callback_url_key,
@@ -51,6 +53,7 @@ impl sink::Sinker for ServeSink {
         let mut responses: Vec<Response> = Vec::new();
 
         while let Some(datum) = input.recv().await {
+            info!("Received request");
             // if the callback url is absent, ignore the request
             let url = match datum.headers.get(self.callback_url_key.as_str()) {
                 Some(url) => url,

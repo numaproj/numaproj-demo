@@ -4,7 +4,7 @@ go 1.21.4
 
 require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	github.com/numaproj/numaflow-go v0.8.2-0.20241030045800-8f4062fa3504
+	github.com/numaproj/numaflow-go v0.9.0
 	github.com/qeesung/image2ascii v1.0.1
 )
 

@@ -8,9 +8,9 @@ name = "server"
 path = "src/main.rs"
 
 [dependencies]
-tonic = "0.12.0"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
-numaflow = {git = "https://github.com/numaproj/numaflow-rs", rev="v0.2.1"}
+tonic = "0.12.3"
+numaflow = { git = "https://github.com/numaproj/numaflow-rs.git", rev = "ddd879588e11455921f1ca958ea2b3c076689293" }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 
