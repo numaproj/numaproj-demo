@@ -22,19 +22,17 @@ kind create cluster
 
 ### Step 2: Setup Numaflow
 
-#### Step 2.a Checkout Numaflow
+#### Step 2.a Install Numaflow
 
 ```shell
-git clone https://github.com/numaproj/numaflow.git # if you haven't already cloned the repo
-cd numaflow
-git checkout main
-make start
+kubectl create ns numaflow-system
+kubectl apply -n numaflow-system -f https://github.com/numaproj/numaflow/releases/download/v1.4.2/install.yaml
 ```
 
 #### Step 2.b Deploy ISB
 
 ```shell
-kubectl apply -f examples/0-isbsvc-jetstream.yaml
+kubectl apply -f https://raw.githubusercontent.com/numaproj/numaflow/main/examples/0-isbsvc-jetstream.yaml
 ```
 
 ### Step 3: Clone the numaproj-demo repo
@@ -140,7 +138,7 @@ curl -L -k 'https://localhost:8444/v1/process/sync_serve' \
 
 #### Send async requests
 ```shell
-curl -H "X-Numaflow-Id: $(uuidgen)" -H 'Content-Type: image/png' -XPOST -T example/demo-ascii-art/src/udfs/assets/numa-512.png -k  https://localhost:8444/v1/process/async | jq
+curl -H "X-Numaflow-Id: $(uuidgen)" -H 'Content-Type: image/png' -XPOST -T ascii/udfs/assets/numa-512.png -k  https://localhost:8444/v1/process/async | jq
 ```
 
 Then using the id we can track the status of the request (replace ${id} with the id from the previous response). The response will give you the adjacency list of the path in the DAG that the request took.
