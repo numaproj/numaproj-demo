@@ -2,6 +2,15 @@ from pynumaflow.mapper import Messages, Message, Datum, MapServer
 from transformers import pipeline
 import json
 import os
+import requests
+from huggingface_hub import configure_http_backend
+
+def backend_factory() -> requests.Session:
+    session = requests.Session()
+    session.verify = False
+    return session
+
+configure_http_backend(backend_factory=backend_factory)
 
 os.environ['CURL_CA_BUNDLE'] = ''
 
