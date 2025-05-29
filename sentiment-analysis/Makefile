@@ -5,4 +5,4 @@ VERSION?=v0.0.1
 
 .PHONY: image
 image:
-	docker build -t "$(PACKAGE):$(VERSION)" .
+	docker buildx build -t "$(PACKAGE):$(VERSION)" --platform linux/amd64,linux/arm64 . --push
