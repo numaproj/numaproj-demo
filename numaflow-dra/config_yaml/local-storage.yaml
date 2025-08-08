@@ -1,0 +1,113 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner  # For static provisioning
+volumeBindingMode: WaitForFirstConsumer    # Delay binding until the PVC is consumed.
+reclaimPolicy: Retain                      # Retain the PV and its data even after PVC deletion.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-provisioner-config
+  namespace: default
+data:
+  storageClassMap: |
+    local-storage:
+      hostDir: /mnt/disks     # Directory on the node
+      mountDir: /mnt/disks    # Mount point inside the container
+      blockCleanerCommand:
+        - "/scripts/shred.sh"
+        - "2"
+      volumeMode: Filesystem
+      fsType: ext4
+      reclaimPolicy: Retain
+      provisionerName: example.com/local-storage
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: local-static-provisioner
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: local-static-provisioner
+  template:
+    metadata:
+      labels:
+        app: local-static-provisioner
+    spec:
+      serviceAccountName: local-storage-admin  # Service account configuration
+      containers:
+        - name: provisioner
+          image: quay.io/external_storage/local-volume-provisioner:v2.5.0
+          env:
+          - name: MY_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          volumeMounts:
+            - mountPath: /etc/provisioner/config
+              name: provisioner-config
+              readOnly: true             
+            - mountPath: /mnt/disks # Path inside the container to access the volume object defined in the volumes field
+              name: local-disks
+      volumes:
+        - name: provisioner-config
+          configMap:
+            name: local-provisioner-config
+        - name: local-disks
+          hostPath:
+            path: /mnt/disks  # Directory path on the node
+            type: DirectoryOrCreate
+        
+---
+---
+# Source: provisioner/templates/provisioner-service-account.yaml
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: local-storage-admin
+  namespace: default
+
+---
+# Source: provisioner/templates/provisioner-cluster-role-binding.yaml
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: local-storage-provisioner-pv-binding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: local-storage-admin
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: system:persistent-volume-provisioner
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: local-storage-provisioner-node-clusterrole
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: local-storage-provisioner-node-binding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: local-storage-admin
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: local-storage-provisioner-node-clusterrole
+  apiGroup: rbac.authorization.k8s.io

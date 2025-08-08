@@ -1,0 +1,42 @@
+# 1 pod, 1 container
+# a container asking for 1 distinct GPU
+
+---
+apiVersion: resource.k8s.io/v1alpha3
+kind: ResourceClaimTemplate
+metadata:
+  namespace: default
+  name: single-gpu-test
+spec:
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        deviceClassName: gpu.nvidia.com
+        allocationMode: ExactCount
+        count: 1
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: default
+  name: sample-single-gpu-01
+  labels:
+    app: sample-single-gpu
+spec:
+  containers:
+  - name: ctr
+    #image: pytorch/pytorch:2.5.0-cuda12.4-cudnn9-devel
+    image: $(REGISTRY_IP):$(REGISTRY_PORT)/numaflow/step1-gpu:debug
+    imagePullPolicy: Never
+    command: ["bash", "-c"]
+    args: ["nvidia-smi -L; trap 'exit 0' TERM; sleep 9999 & wait"]
+    resources:
+      claims:
+      - name: gpu
+  nodeSelector:
+    kubernetes.io/hostname: eagle01
+  resourceClaims:
+  - name: gpu
+    resourceClaimTemplateName: single-gpu-test
