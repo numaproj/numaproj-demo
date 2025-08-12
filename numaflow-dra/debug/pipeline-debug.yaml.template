@@ -1,0 +1,123 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: dci-poc-step1
+spec:
+  vertices:
+    - name: in
+      scale:
+        max: 1
+      source:
+        udsource:
+          container:
+            image: $REGISTRY_URL/numaflow/step1-dev:debug
+            imagePullPolicy: Never
+            env:
+              - name: SCRIPT
+                value: "source"
+              - name: VIDEO_SRC
+                value: "$VIDEO_SRC"
+            volumeMounts:
+              - mountPath: /var/log/numaflow
+                name: log-volume
+              - mountPath: /mnt/whitebox
+                name: whitebox-volume
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/log/numaflow
+            type: DirectoryOrCreate
+        - name: whitebox-volume
+          hostPath:
+            path: /mnt/whitebox
+            type: DirectoryOrCreate
+      nodeSelector:
+        kubernetes.io/hostname: eagle01
+    - name: filter-resize
+      scale:
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/step1-dev:debug
+          imagePullPolicy: Never
+          env:
+            - name: SCRIPT
+              value: "fr-stream" # "filter-resize" or "fr-async" or "fr-stream"
+            - name: OUTPUT_WIDTH
+              value: "416"
+            - name: OUTPUT_HEIGHT
+              value: "416"
+          volumeMounts:
+            - mountPath: /var/log/numaflow
+              name: log-volume
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/log/numaflow
+            type: DirectoryOrCreate
+      nodeSelector:
+        kubernetes.io/hostname: eagle02
+    - name: inference
+      scale:
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/step1-dev-gpu:debug
+          imagePullPolicy: Never
+          #command: ["bash", "-c"]
+          #args: ["nvidia-smi -L; trap 'exit 0' TERM; sleep 9999 & wait"]
+          resources:
+            claims:
+              - name: gpu
+          env:
+            - name: SCRIPT
+              value: "inf-stream"
+          volumeMounts:
+            - mountPath: /var/log/numaflow
+              name: log-volume
+      resourceClaims:
+        - name: gpu
+          resourceClaimTemplateName: single-gpu # numaflow-dra/config_yaml/dra-single-gpu.yaml
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/log/numaflow
+            type: DirectoryOrCreate
+      nodeSelector:
+        kubernetes.io/hostname: eagle01
+    - name: out
+      scale:
+        max: 1
+      sink:
+        udsink:
+          container:
+            image: $REGISTRY_URL/numaflow/step1-dev:debug
+            imagePullPolicy: Never
+            volumeMounts:
+              - name: log-volume
+                mountPath: /var/log/numaflow
+            env:
+              - name: SCRIPT
+                value: "sink-inf-debug"
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/log/numaflow
+            type: DirectoryOrCreate
+      nodeSelector:
+        kubernetes.io/hostname: eagle02
+        
+  edges:
+    - from: in
+      to: filter-resize
+    - from: filter-resize
+      to: inference
+    - from: inference
+      to: out
+      

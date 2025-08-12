@@ -1,7 +1,7 @@
 apiVersion: numaflow.numaproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: dci-poc-step1
+  name: debug-pipeline
 spec:
   vertices:
     - name: in
@@ -10,13 +10,13 @@ spec:
       source:
         udsource:
           container:
-            image: Registry IP:port/numaflow/step1:stable
+            image: $REGISTRY_URL/numaflow/step1-debug:stable
             imagePullPolicy: Always
             env:
               - name: SCRIPT
                 value: "source"
               - name: VIDEO_SRC
-                value: "/mnt/whitebox/work_yamamoto/poc_movie/A_Busy_Downtown_Intersection_3840*2160_15fps_h264.mp4"
+                value: "$VIDEO_SRC"
             volumeMounts:
               - mountPath: /var/log/numaflow
                 name: log-volume
@@ -38,15 +38,11 @@ spec:
         max: 1
       udf:
         container:
-          image: Registry IP:port/numaflow/step1:stable
+          image: $REGISTRY_URL/numaflow/step1-debug:stable
           imagePullPolicy: Always
           env:
             - name: SCRIPT
               value: "fr-stream" # "filter-resize" or "fr-async" or "fr-stream"
-            - name: OUTPUT_WIDTH
-              value: "416"
-            - name: OUTPUT_HEIGHT
-              value: "416"
           volumeMounts:
             - mountPath: /var/log/numaflow
               name: log-volume
@@ -57,46 +53,20 @@ spec:
           hostPath:
             path: /var/log/numaflow
             type: DirectoryOrCreate
-    - name: inference
-      scale:
-        max: 1
-      udf:
-        container:
-          image: Registry IP:port/numaflow/step1-gpu:stable
-          imagePullPolicy: Always
-          env:
-            - name: SCRIPT
-              value: "inf-stream"
-          volumeMounts:
-            - mountPath: /var/log/numaflow
-              name: log-volume
-          resources:
-            claims:
-              - name: gpu
-      resourceClaims:
-       - name: gpu
-         resourceClaimTemplateName: single-gpu # numaflow-dra/config_yaml/dra-single-gpu.yaml
-      limits:
-        readBatchSize: 1
-      volumes:
-        - name: log-volume
-          hostPath:
-            path: /var/log/numaflow
-            type: DirectoryOrCreate
-    - name: out
+    - name: out-debug
       scale:
         max: 1
       sink:
         udsink:
           container:
-            image: Registry IP:port/numaflow/step1:stable
+            image: $REGISTRY_URL/numaflow/step1-debug:stable
             imagePullPolicy: Always
             volumeMounts:
               - name: log-volume
                 mountPath: /var/log/numaflow
             env:
               - name: SCRIPT
-                value: "sink"
+                value: "sink-debug"
       volumes:
         - name: log-volume
           hostPath:
@@ -107,7 +77,5 @@ spec:
     - from: in
       to: filter-resize
     - from: filter-resize
-      to: inference
-    - from: inference
-      to: out
+      to: out-debug
       
