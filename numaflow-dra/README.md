@@ -2,7 +2,7 @@ The purpose of this repository is verifying the integration of Numaflow and DRA.
 In our plan, we commit this repo to numaproj-demo
 
 # Architecture of DCI PoC Pipeline
-![Architecture of DCI PoC Pipeline](/docs/assets/DCI_PoC_architecture.svg)
+![Architecture of DCI PoC Pipeline](./docs/assets/DCI_PoC_architecture.svg)
 
 | Component | Role |
 | :- | :- |

@@ -83,11 +83,11 @@ Import our dashboard JSON file `demo/grafana-dashboard.json` to Grafana as follo
 
 Now you will see the **numaflow-dashboard** item on the Dashboards page.
 
-![New button then Import menu](/docs/assets/demo-grafana-new-import.png)
+![New button then Import menu](../docs/assets/demo-grafana-new-import.png)
 
-![Upload dashboard JSON file](/docs/assets/demo-grafana-import-dashboard.png)
+![Upload dashboard JSON file](../docs/assets/demo-grafana-import-dashboard.png)
 
-![Confirm import](/docs/assets/demo-grafana-confirm-import.png)
+![Confirm import](../docs/assets/demo-grafana-confirm-import.png)
 
 ## 1.3. Set up Remote desktop environment
 
@@ -249,9 +249,9 @@ local-static-provisioner-prxx2   1/1     Running   0          39d
 
 Now you will see some rows on the dashboard. They will be used later.
 
-![Login Grafana](/docs/assets/demo-grafana-login.png)
+![Login Grafana](../docs/assets/demo-grafana-login.png)
 
-![Skip updating your password](/docs/assets/demo-grafana-update-your-password.png)
+![Skip updating your password](../docs/assets/demo-grafana-update-your-password.png)
 
 ## 2.5. Login remote desktop
 
@@ -432,7 +432,7 @@ $ ffplay -x 1280 -y 720 rtsp://localhost:8554/my_stream
 
 In addition, open a web browser and access http://localhost:8000/viewer to play the output video arrived at the Video Display Server.
 
-![Demo playing input and output videos](/docs/assets/demo-playing-input-and-output-videos.png)
+![Demo playing input and output videos](../docs/assets/demo-playing-input-and-output-videos.png)
 
 Note that it may be so slow to play both input and output videos in one desktop that the videos get fuzzy. In that case, close the ffplay window to stop playing the input video.
 
@@ -448,9 +448,9 @@ See the **Latency (\_sum / \_count)** row for average latency, and the **Traffic
 
 Assume that the frame rate of your input video is 15fps. We'd say the pipeline runs with good perfomance if the the Outbound Messages in the Traffic row is 15fps (same as the input rate) and the Total time for each vertex in the Latency row is 66.7ms (1s/15fps).
 
-![Grafana dashboard (latency)](/docs/assets/demo-grafana-latency.png)
+![Grafana dashboard (latency)](../docs/assets/demo-grafana-latency.png)
 
-![Grafana dashboard (traffic)](/docs/assets/demo-grafana-traffic.png)
+![Grafana dashboard (traffic)](../docs/assets/demo-grafana-traffic.png)
 
 ## 3.6. Switch pipelines
 
