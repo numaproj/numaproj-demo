@@ -11,20 +11,11 @@ handlers:
     level: INFO
     formatter: detailed
     stream: ext://sys.stdout
-  file:
-    class: logging.FileHandler
-    filename: '/var/log/numaflow/dra.log'
-    level: DEBUG
-    formatter: detailed
 loggers:
   console_logger:
     level: DEBUG
     handlers: [console]
     propagate: no
-  file_logger:
-    level: DEBUG
-    handlers: [file]
-    propagate: no
 root:
-  level: WARNING
-  handlers: [console, file]
+  level: INFO
+  handlers: []

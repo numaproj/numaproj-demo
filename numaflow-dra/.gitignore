@@ -1,0 +1,33 @@
+# env file
+app.env
+repo.env
+
+# pipeline.yaml
+dci_poc/pipeline*.yaml
+demo/pipeline*.yaml
+debug/pipeline*.yaml
+
+# ML models
+/ml-models/*
+!/ml-models/.gitkeep
+
+# mediamtx
+mediamtx.yml
+
+# Log file
+*.log
+
+# Byte-compiled
+__pycache__/
+
+# pytest cache
+.pytest_cache/
+
+# vitrual environment
+/.venv/
+
+# VSCode configuration
+/.vscode/
+
+# for unit test
+/0001.png

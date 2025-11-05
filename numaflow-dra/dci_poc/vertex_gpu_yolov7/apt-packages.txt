@@ -1,0 +1,8 @@
+curl
+wget
+
+# deps for building python deps
+build-essential
+libopencv-dev
+python3-opencv
+libyaml-dev

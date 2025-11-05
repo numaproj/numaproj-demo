@@ -6,8 +6,8 @@ When you edit code other than a worker, you must push a container image to your 
 - Since you can't use `docker build`, you use `buildah bud` instead.
 ```
 cd numaflow-dra
-sudo buildah bud -t [registry_URL]/[project]/step1:debug -f ./path/to/Dockerfile --layers
-sudo buildah bud -t [registry_URL]/[project]/step1-gpu:debug -f ./path/to/Dockerfile --layers
+sudo buildah bud -t [registry_URL]/[project]/dci_poc:debug -f ./path/to/Dockerfile --layers
+sudo buildah bud -t [registry_URL]/[project]/dci_poc-gpu:debug -f ./path/to/Dockerfile --layers
 sudo buildah images
 ```
 

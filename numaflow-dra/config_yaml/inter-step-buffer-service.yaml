@@ -15,4 +15,7 @@ spec:
       volumeSize: 3Gi
       storageClassName: local-storage
     settings: |
-        max_payload: 32MB
+      max_payload: 67108864
+    bufferConfig: |
+      stream:
+        maxMsgs: 1

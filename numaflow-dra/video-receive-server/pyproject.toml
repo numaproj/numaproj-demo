@@ -1,0 +1,13 @@
+[project]
+name = "video-receive-server"
+version = "0.1.0"
+description = "Simple Flask MJPEG receiver and MJPEG viewer"
+requires-python = ">=3.12"
+
+[tool.poetry]
+name = "video-receive-server"
+version = "1.0.3"
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+Flask = ">=3.0.0,<4"
