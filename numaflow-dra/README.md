@@ -223,5 +223,5 @@ That's all.
 
 # LICENCE
 
-This project is licensed under the Apache License 2.0，but but includes portions of code that are licensed under the MIT License as listed below.
+This project is licensed under the Apache License 2.0，but includes portions of code that are licensed under the MIT License as listed below.
 - video-streaming-server/mediamtx/
