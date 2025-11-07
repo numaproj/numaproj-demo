@@ -1,37 +1,80 @@
-[tool.black]
-line-length = 100
-target-version = ["py39"]
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | \.idea
-  | _build
-  | buck-out
-  | build
-  | dist
-  | tests/.*/setup.py
-  | function/proto
-  | sink/proto
-)/
-'''
+[tool.poetry]
+name = "numaflow-dra"
+version = "1.0.3"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.12.1"
 
 [tool.ruff]
 line-length = 100
-src = ["pynumaflow", "tests", "examples"]
-target-version = "py39"
+src = ["dci_poc", "lib", "log", "tests"]
+# TODO add kfp-nfp-poc into src 
+exclude = ["kfp-nfp-poc"]
+target-version = "py312"
 show-fixes = true
-extend-exclude = [
-    "*_pb2.py",
-    "*_pb2*.py",
-    "*.pyi"
-]
-output-format = "full"
-[tool.ruff.lint]
-select = ["E", "F", "UP"]
 
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint]
+select = ["ALL"]
+unfixable = ["ALL"]
+fixable = ["I"]
+# For each rule, see https://docs.astral.sh/ruff/rules/
+ignore = [
+  "ANN",
+  "B017",
+  "BLE001",
+  "COM812",
+  "D1",
+  "D2",
+  "D4",
+  "DTZ005",
+  "ERA001",
+  "FBT002",
+  "G004",
+  "G201",
+  "INP001",
+  "N802",
+  "N806",
+  "LOG015",
+  "PERF402",
+  "PLR2004",
+  "PLW0603",
+  "PT",
+  "PTH",
+  "RET504",
+  "S108",
+  "S301",
+  "SIM115",
+  "TRY002",
+  "TRY003",
+  "TRY300",
+  "TRY301",
+  "TRY400",
+  "TRY401",
+]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.lint.isort]
+known-first-party = ["lib", "log"]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore [S101 Use of `assert` detected] for tests
+"tests/**/*.py" = ["S101"]
+
+[tool.pytest.ini_options]
+# use importlib import mode
+# https://docs.pytest.org/en/stable/explanation/goodpractices.html#tests-outside-application-code
+addopts = [
+  "--import-mode=importlib",
+]

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Read .env file
-if [ -f user-config.env ]; then
-    export $(grep -v '^#' user-config.env | xargs)
+if [ -f repo.env ]; then
+    export $(grep -vE '^\s*#|^\s*$' repo.env | sed 's/\s*#.*$//')
 fi
 
 # Convert pipelineXXX.yaml.template into pipelineXXX.yaml

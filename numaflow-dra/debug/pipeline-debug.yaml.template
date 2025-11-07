@@ -1,7 +1,7 @@
 apiVersion: numaflow.numaproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: dci-poc-step1
+  name: dci_poc
 spec:
   vertices:
     - name: in
@@ -10,7 +10,7 @@ spec:
       source:
         udsource:
           container:
-            image: $REGISTRY_URL/numaflow/step1-dev:debug
+            image: $REGISTRY_URL/numaflow/dci-poc-dev:debug
             imagePullPolicy: Never
             env:
               - name: SCRIPT
@@ -40,7 +40,7 @@ spec:
         max: 1
       udf:
         container:
-          image: $REGISTRY_URL/numaflow/step1-dev:debug
+          image: $REGISTRY_URL/numaflow/dci-poc-dev:debug
           imagePullPolicy: Never
           env:
             - name: SCRIPT
@@ -66,7 +66,7 @@ spec:
         max: 1
       udf:
         container:
-          image: $REGISTRY_URL/numaflow/step1-dev-gpu:debug
+          image: $REGISTRY_URL/numaflow/dci-poc-dev-gpu:debug
           imagePullPolicy: Never
           #command: ["bash", "-c"]
           #args: ["nvidia-smi -L; trap 'exit 0' TERM; sleep 9999 & wait"]
@@ -97,7 +97,7 @@ spec:
       sink:
         udsink:
           container:
-            image: $REGISTRY_URL/numaflow/step1-dev:debug
+            image: $REGISTRY_URL/numaflow/dci-poc-dev:debug
             imagePullPolicy: Never
             volumeMounts:
               - name: log-volume

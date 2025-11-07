@@ -28,7 +28,7 @@ spec:
   containers:
   - name: ctr
     #image: pytorch/pytorch:2.5.0-cuda12.4-cudnn9-devel
-    image: $(REGISTRY_IP):$(REGISTRY_PORT)/numaflow/step1-gpu:debug
+    image: $(REGISTRY_IP):$(REGISTRY_PORT)/numaflow/dci-poc-gpu:debug
     imagePullPolicy: Never
     command: ["bash", "-c"]
     args: ["nvidia-smi -L; trap 'exit 0' TERM; sleep 9999 & wait"]

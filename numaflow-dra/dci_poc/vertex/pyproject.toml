@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "dci-poc-vertex"
+version = "1.0.3"
+description = "Vertex that composes the dci_poc pipeline"
+authors = ["sesame0224"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+pynumaflow = "0.10.0"
+
+python-dotenv = "1.0.1"
+opencv-python = "4.10.0.84"
+numpy = "2.2.2"
+PyYAML = "6.0.2"
+pathlib = "1.0.1"
+PyTurboJPEG = "1.7.7"
+requests = "2.32.5"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+pytest-cov = "^3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
