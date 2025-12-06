@@ -1,0 +1,26 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: mqtt-test
+  namespace: numaflow-demo
+spec:
+  vertices:
+    - name: mqtt-source
+      source:
+        udsource:
+          container:
+            image: mqtt-udsource:test
+            imagePullPolicy: Never
+            env:
+              - name: MQTT_BROKER
+                value: "mosquitto-service"
+              - name: MQTT_PORT
+                value: "1883"
+              - name: MQTT_TOPIC
+                value: "test"
+    - name: log-sink
+      sink:
+        log: {}
+  edges:
+    - from: mqtt-source
+      to: log-sink
