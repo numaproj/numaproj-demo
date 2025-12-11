@@ -1,3 +1,6 @@
+# Mosquitto MQTT Broker for Testing
+# Deploy with: kubectl apply -f mosquitto-deployment.yaml
+
 ---
 apiVersion: v1
 kind: ConfigMap

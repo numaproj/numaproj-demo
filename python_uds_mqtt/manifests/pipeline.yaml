@@ -9,7 +9,7 @@ spec:
       source:
         udsource:
           container:
-            image: mqtt-udsource:test
+            image: mqtt-udsource:latest
             imagePullPolicy: Never
             env:
               - name: MQTT_BROKER
