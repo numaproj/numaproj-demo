@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "dci-poc-vertex-gpu-yolov7"
+version = "1.0.3"
+description = "GPU-utilizing Vertex that composes the dci-poc pipeline"
+authors = ["sesame0224"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+pynumaflow = "0.10.0"
+
+python-dotenv = "1.0.1"
+numpy = "2.2.2"
+PyYAML = "6.0.2"
+pathlib = "1.0.1"
+torch = "2.5.0" # WongKinYiu/yolov7 have a bug on 2.6 version(https://github.com/WongKinYiu/yolov7/pull/2115)
+pandas = "^2.2.3"
+opencv-python = "4.10.0.84"
+torchvision = "0.20.0" # This version must be fixed, since it is related to "torch"
+validators = "0.34.0"
+tqdm = "^4.67.1"
+matplotlib = "^3.10.1"
+seaborn = "^0.13.2"
+scipy = "^1.15.2"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+opencv-python = "4.10.0.84"
+pytest = "^8.4.1"
+pytest-cov = "^3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

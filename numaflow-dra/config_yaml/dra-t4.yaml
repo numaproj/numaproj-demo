@@ -1,0 +1,22 @@
+apiVersion: resource.k8s.io/v1beta1
+kind: DeviceClass
+metadata:
+  name: nvidia-t4
+spec:
+  selectors:
+    - cel:
+        expression: |
+          device.driver == "gpu.nvidia.com" &&
+          device.attributes["gpu.nvidia.com"].productName == "Tesla T4"
+---
+apiVersion: resource.k8s.io/v1beta1
+kind: ResourceClaimTemplate
+metadata:
+  namespace: default
+  name: numaflow-dra-t4
+spec:
+  spec:
+    devices:
+      requests:
+        - name: gpu
+          deviceClassName: nvidia-t4

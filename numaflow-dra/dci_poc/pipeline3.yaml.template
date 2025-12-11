@@ -1,0 +1,124 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: dci-poc-pipeline3
+spec:
+  vertices:
+    - name: in
+      scale:
+        max: 1
+      source:
+        udsource:
+          container:
+            image: $REGISTRY_URL/numaflow/dci-poc:stable
+            imagePullPolicy: Always
+            env:
+              - name: SCRIPT
+                value: source
+              - name: SOURCE_INPUT_TYPE
+                value: file # file or stream
+            volumeMounts:
+              - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
+                name: log-volume
+              - mountPath: /mnt/whitebox
+                name: whitebox-volume
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/tmp/logs/numaflow-dra/dci_poc
+            type: DirectoryOrCreate
+        - name: whitebox-volume
+          hostPath:
+            path: /mnt/whitebox
+            type: DirectoryOrCreate
+      containerTemplate:
+        env:
+          - name: NUMAFLOW_RUNTIME
+            value: golang
+    - name: filter-resize
+      scale:
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: fr-stream
+          volumeMounts:
+            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
+              name: log-volume
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/tmp/logs/numaflow-dra/dci_poc
+            type: DirectoryOrCreate
+      containerTemplate:
+        env:
+          - name: NUMAFLOW_RUNTIME
+            value: golang
+    - name: inference
+      scale:
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc-gpu-yolov7:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: inf-stream-yolov7
+          volumeMounts:
+            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
+              name: log-volume
+          resources:
+            claims:
+              - name: gpu
+      resourceClaims:
+        - name: gpu
+          resourceClaimTemplateName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/tmp/logs/numaflow-dra/dci_poc
+            type: DirectoryOrCreate
+      containerTemplate:
+        env:
+          - name: NUMAFLOW_RUNTIME
+            value: golang
+    - name: out
+      scale:
+        max: 1
+      sink:
+        udsink:
+          container:
+            image: $REGISTRY_URL/numaflow/dci-poc:stable
+            imagePullPolicy: Always
+            volumeMounts:
+              - name: log-volume
+                mountPath: /var/tmp/logs/numaflow-dra/dci_poc
+            env:
+              - name: SCRIPT
+                value: sink
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/tmp/logs/numaflow-dra/dci_poc
+            type: DirectoryOrCreate
+      containerTemplate:
+        env:
+          - name: NUMAFLOW_RUNTIME
+            value: golang
+          
+  edges:
+    - from: in
+      to: filter-resize
+    - from: filter-resize
+      to: inference
+    - from: inference
+      to: out
