@@ -51,7 +51,6 @@ WORKDIR $PYSETUP_PATH
 
 ENV  PYTHONPATH="$PYSETUP_PATH"
 COPY ./lib/ ./lib/
-COPY app.env ./
 COPY $VERTEX_PATH $VERTEX_PATH
 
 RUN git clone -b "${YOLOV4_GIT_VERSION}" "${YOLOV4_GIT_URL}" ./ml-models/pytorch-YOLOv4

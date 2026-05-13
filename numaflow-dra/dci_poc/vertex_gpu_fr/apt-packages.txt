@@ -1,0 +1,17 @@
+curl
+wget
+
+# deps for building python deps
+build-essential
+libopencv-dev
+libgl1
+libglx-mesa0
+libturbojpeg0-dev
+
+# OpenCV with CUDA
+cmake
+python3-dev
+cuda-toolkit-13-0
+
+# Debug
+netcat-openbsd

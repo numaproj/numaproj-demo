@@ -1,0 +1,5 @@
+- name: Disable swap
+  ansible.builtin.import_tasks: disable-swap.yml
+
+- name: Manage /etc/hosts
+  ansible.builtin.import_tasks: manage-etc-hosts.yml

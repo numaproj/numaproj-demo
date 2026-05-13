@@ -10,13 +10,12 @@ spec:
           device.attributes["gpu.nvidia.com"].productName == "NVIDIA A100 80GB PCIe"
 ---
 apiVersion: resource.k8s.io/v1beta1
-kind: ResourceClaimTemplate
+kind: ResourceClaim
 metadata:
   namespace: default
   name: numaflow-dra-a100
 spec:
-  spec:
-    devices:
-      requests:
-        - name: gpu
-          deviceClassName: nvidia-a100
+  devices:
+    requests:
+      - name: gpu
+        deviceClassName: nvidia-a100

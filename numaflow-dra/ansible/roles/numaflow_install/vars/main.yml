@@ -1,0 +1,1 @@
+numaflow_install_repo_path: "{{ ansible_facts['env']['HOME'] }}/git/numaflow"

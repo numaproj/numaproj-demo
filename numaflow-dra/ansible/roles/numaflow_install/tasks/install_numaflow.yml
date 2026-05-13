@@ -1,0 +1,48 @@
+- name: Clone specific version of Numaflow
+  ansible.builtin.git:
+    repo: https://github.com/numaproj/numaflow.git
+    dest: "{{ numaflow_install_repo_path }}"
+    version: "{{ numaflow_install.numaflow_version }}"
+
+- name: Install kubernetes python module
+  ansible.builtin.pip:
+    name: kubernetes
+    state: present
+
+- name: Create numaflow-system namespace if not exists
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: numaflow-system
+
+- name: Apply Numaflow installation manifest
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ numaflow_install_repo_path }}/config/install.yaml"
+    namespace: numaflow-system
+
+- name: Wait for all pods to be ready in numaflow-system
+  ansible.builtin.command: >
+    kubectl wait --namespace=numaflow-system --for=condition=Ready pods --all --timeout=120s
+  changed_when: false
+
+- name: Check if the service numaflow-dex-server exists
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Service
+    namespace: numaflow-system
+    name: numaflow-dex-server
+  register: numaflow_install_dex_server
+  failed_when: numaflow_install_dex_server.resources|length != 1
+
+- name: Check if the service numaflow-server exists
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Service
+    namespace: numaflow-system
+    name: numaflow-server
+  register: numaflow_install_server
+  failed_when: numaflow_install_server.resources|length != 1

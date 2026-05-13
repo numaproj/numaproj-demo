@@ -50,7 +50,6 @@ WORKDIR $PYSETUP_PATH
 
 ENV  PYTHONPATH="$PYSETUP_PATH"
 COPY ./lib/ ./lib/
-COPY app.env ./
 COPY $VERTEX_PATH $VERTEX_PATH
 
 # path must be lower caharacter due to https://github.com/WongKinYiu/yolov7/blob/a207844b1ce82d204ab36d87d496728d3d2348e7/utils/google_utils.py#L19

@@ -1,0 +1,4 @@
+- name: Install tools for Numaflow-DRA
+  hosts: k8s_master
+  roles:
+    - numaflow_dra_tools

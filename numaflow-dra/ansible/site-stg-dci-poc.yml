@@ -1,0 +1,29 @@
+# This playbook automates the section "1. Prerequisites" of the
+# AICP-Numaflow-PoC README [1].
+#
+# [1] https://github.com/numaproj/numaproj-demo/blob/main/numaflow-dra/README.md
+#
+---
+- name: Setup Ubuntu 24.04
+  hosts: all
+  roles:
+    - ubuntu_2404
+    - ubuntu_common
+
+- name: Setup Kubernetes Cluster
+  import_playbook: playbooks/kubernetes-cluster.yml
+- name: Setup NVIDIA GPU Support
+  import_playbook: playbooks/nvidia-gpu-support.yml
+- name: Setup Dyanamic Resource Allocation
+  import_playbook: playbooks/dra-driver-nvidia-gpu.yml
+- name: Setup Numaflow
+  import_playbook: playbooks/numaflow.yml
+- name: Setup Numaflow-DRA Tools
+  import_playbook: playbooks/numaflow-dra-tools.yml
+
+- name: Setup monitoring system for Numaflow
+  import_playbook: playbooks/monitor.yml
+- name: Setup remote desktop (VNC) for demo
+  import_playbook: playbooks/demo-remote-desktop.yml
+- name: Setup Grafana dashboard for demo
+  import_playbook: playbooks/demo-grafana-dashboard.yml

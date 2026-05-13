@@ -1,0 +1,8 @@
+- name: Enable API group
+  become: true
+  args:
+    executable: /bin/bash
+  ansible.builtin.script: files/enable-api-group.sh
+  register: feature_gates_dra_master_api_group
+  changed_when: feature_gates_dra_master_api_group.rc == 1
+  failed_when: feature_gates_dra_master_api_group.rc >= 2

@@ -2,20 +2,6 @@ import logging
 import logging.config
 import os
 import sys
-from pathlib import Path
-
-import yaml
-from dotenv import load_dotenv
-
-
-def setup_logger(logger_name) -> logging.Logger:
-    # Load log config from yaml
-    log_config_path = Path(__file__).parent / 'logging_config.yaml'
-    with open(log_config_path) as f:
-        config = yaml.safe_load(f)
-        logging.config.dictConfig(config)
-
-    return logging.getLogger(logger_name)
 
 
 def remove_filehandler_in_logger(logger: logging.Logger) -> logging.Logger:
@@ -43,15 +29,17 @@ def change_handler_filename(logger: logging.Logger, filename: str) -> None:
     add_new_filehandler(logger, filename)
 
 
-# set logger log-level to env LOG_LEVEL
+# set logger log-level to env LOGGER_LOG_LEVEL
 def set_logger_log_level(logger: logging.Logger) -> None:
-    load_dotenv(str(Path(__file__).parent / '../app.env'))
-    log_level = os.getenv('LOGGER_LOG_LEVEL', 'NONE').upper()
+    # See https://docs.python.org/ja/3.12/library/logging.html#logging-levels
+    log_level = os.getenv('LOGGER_LOG_LEVEL', 'NOTSET').upper()
 
-    valid_log_level_list = os.getenv('VALID_LOG_LEVEL_LIST').split(',')
-    if log_level in valid_log_level_list:
+    try:
         logger.setLevel(getattr(logging, log_level))
-        logger.info(f'set LOG_LEVEL to {log_level}.')
-    else:
-        logger.error(f'Invalid LOG_LEVEL: {log_level}. Must be one of {valid_log_level_list}.')
+        logger.info(f'set LOGGER_LOG_LEVEL to {log_level}.')
+    except AttributeError:
+        logger.error(
+            f'Invalid LOGGER_LOG_LEVEL: {log_level}. '
+            f'Must be one of NOTSET, DEBUG, INFO, WARNING, ERROR, or CRITICAL.'
+        )
         sys.exit(1)

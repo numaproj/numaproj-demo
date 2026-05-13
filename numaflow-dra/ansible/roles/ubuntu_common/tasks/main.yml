@@ -1,0 +1,24 @@
+- name: Ensure that automatic upgrades are disabled after reboot
+  become: true
+  ansible.builtin.copy:
+    src: apt-conf-20auto-upgrades
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    mode: "0644"
+  notify:
+    - Reboot in order to disable automatic upgrades
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Install common tools
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - git
+      - jq
+
+- name: Set timezone
+  become: true
+  community.general.timezone:
+    name: "{{ ubuntu_common.timezone }}"

@@ -1,0 +1,31 @@
+- name: Check if Grafana is reachable from us
+  ansible.builtin.uri:
+    url: http://localhost:3000/
+  register: demo_grafana_dashboard_reachable
+  failed_when: false
+
+- name: (Port-forwarding Grafana)
+  when: demo_grafana_dashboard_reachable.status < 0
+  block:
+    - name: Port-forward Grafana
+      ansible.builtin.command: screen -d -m -- kubectl port-forward -n monitoring service/grafana 3000:3000
+
+    - name: Check again if Grafana is reachable from us
+      ansible.builtin.uri:
+        url: http://localhost:3000/
+      register: demo_grafana_dashboard_guardian_reachable
+      failed_when: demo_grafana_dashboard_guardian_reachable.status < 0
+
+- name: Upload dashboard definition
+  ansible.builtin.copy:
+    src: files/grafana-dashboard.json
+    dest: "{{ ansible_facts['env']['HOME'] }}/grafana-dashboard.json"
+    mode: "0644"
+
+- name: Create or update dashboard in Grafana
+  ansible.builtin.script: >-
+    files/create-or-update-dashboard.sh
+    '{{ ansible_facts['env']['HOME'] }}/grafana-dashboard.json'
+  register: demo_grafana_dashboard_api
+  changed_when: demo_grafana_dashboard_api.rc == 1
+  failed_when: demo_grafana_dashboard_api.rc >= 2

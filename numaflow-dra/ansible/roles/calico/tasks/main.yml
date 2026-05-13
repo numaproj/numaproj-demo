@@ -1,0 +1,42 @@
+- name: Create temporary file
+  ansible.builtin.tempfile:
+  register: calico_tempfile
+  changed_when: false
+
+- name: Download Calico Manifest as temporary file
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/projectcalico/calico/{{ calico.calico_ver }}/manifests/calico.yaml"
+    dest: "{{ calico_tempfile.path }}"
+    mode: "0644"
+  changed_when: false
+
+- name: Patch Calico Manifest
+  ansible.builtin.script: files/patch-calico-yaml.sh '{{ calico_tempfile.path }}'
+  register: calico_patch
+  changed_when: false
+  failed_when: calico_patch.rc >= 2
+
+- name: Copy temporary Calico Manifest back to the HOME
+  ansible.builtin.copy:
+    remote_src: true
+    src: "{{ calico_tempfile.path }}"
+    dest: "{{ ansible_facts['env']['HOME'] }}/calico_{{ calico.calico_ver }}.yaml"
+    mode: "0644"
+
+- name: Install kubernetes python module
+  ansible.builtin.pip:
+    name: kubernetes
+    state: present
+
+- name: Install Calico Manifest
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ ansible_facts['env']['HOME'] }}/calico_{{ calico.calico_ver }}.yaml"
+
+- name: Wait until all calico-related pods are ready
+  ansible.builtin.command: kubectl wait --timeout=60s --for=condition=Ready -n kube-system pod -l k8s-app=calico-node
+  changed_when: false
+
+- name: Wait until all nodes are ready
+  ansible.builtin.command: kubectl wait --timeout=60s --for=condition=Ready --all nodes
+  changed_when: false

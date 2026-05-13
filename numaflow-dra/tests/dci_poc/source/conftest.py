@@ -6,10 +6,7 @@ from pynumaflow.proto.sourcer import source_pb2_grpc
 from pynumaflow.sourcer import (
     SourceAsyncServer,
 )
-from tests.dci_poc.source.utils import (
-    launch_ffmpeg_and_wait_ready,
-    launch_mediamtx_and_wait_ready,
-)
+from tests.dci_poc.source.utils import launch_mediamtx_and_wait_ready
 
 from dci_poc.vertex.source import AsyncSourceSendFrame
 
@@ -36,9 +33,6 @@ def source_servicer_impl(source_handler) -> source_pb2_grpc.SourceServicer:
 def setup_video_streaming() -> None:
     try:
         mediamtx = launch_mediamtx_and_wait_ready()
-        ffmpeg = launch_ffmpeg_and_wait_ready()
-
-        ffmpeg.stdout.close()
 
         def kill_process(p) -> None:
             p.kill()
@@ -51,20 +45,11 @@ def setup_video_streaming() -> None:
                 msg = 'mediamtx ready timeout error'
                 raise ValueError(msg)
 
-            line = mediamtx.stdout.readline()
-            logger.info(line.strip().decode())
-            if b'INF [path my_stream] [MPEG-TS source] ready' in line:
-                t.cancel()
-                break
+            t.cancel()
+            break
 
         yield
     finally:
-        try:
-            if ffmpeg is not None:
-                logger.info('terminate ffmpeg')
-                ffmpeg.kill()
-        except Exception as e:
-            logger.error(e)
         try:
             if mediamtx is not None:
                 logger.info('terminate mediamtx')

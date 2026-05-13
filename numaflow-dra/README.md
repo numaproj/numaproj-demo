@@ -1,17 +1,17 @@
 The purpose of this repository is verifying the integration of Numaflow and DRA.
 In our plan, we commit this repo to numaproj-demo
 
-# Architecture of DCI PoC Pipeline
-![Architecture of DCI PoC Pipeline](./docs/assets/DCI_PoC_architecture.svg)
+# Architecture of AICP Numaflow PoC Pipeline
+![Architecture of AICP Numaflow PoC Pipeline](/docs/assets/AICP_Numaflow_PoC_architecture.svg)
 
 | Component | Role |
 | :- | :- |
 | NAS | Hosts video files encoded in H.264. (Note that as long as the files can be placed, it doesn't have to be a NAS.) |
 | Video Streaming Server | Reads an input video file on the NAS, then serves it to the Source via RTSP. |
-| Source | Provides input video frames for the pipeline in one of the following way: (1) Receives the input video from the Video Streaming Server via RTSP; or (2) Reads the input video file on the NAS directly. |
-| Filter Resize (F/R) | Resizes the input frames from the Source as preprocessing, then sends them to the Inference. |
+| Source | Provides input video frames for the pipeline in one of the following way: (A-1) Receives the input video from the Video Streaming Server via RTSP; or (A-2) Reads the input video file on the NAS directly. |
+| Filter Resize (F/R) | Resizes the input frames from the Source as preprocessing, then sends them to the downstream vertex. |
 | Inference | Performs object detection on the frames using YOLOv4 or YOLOv7 with GPU, then sends both the original (received) frames and the detected bounding-box information to the Sink. |
-| Sink | Draws bounding boxes on the frames, then sends them to the Video Display Server via HTTP. |
+| Sink | Draws bounding boxes on the frames, then output them in one of the following way: (B-1) Sends the frames to the Video Display Server via HTTP; or (B-2) Dumps the frames to the video file. |
 | Video Display Server | Serves the output video frames from the Sink to the client via HTTP. |
 
 ## Note: About the inference model being used in Inference Vertex
@@ -81,6 +81,15 @@ kubectl apply -f ./config_yaml/inter-step-buffer-service.yaml
 ```
 
 # 2. QuickStart
+
+In the quickstart, we use the following options described in the figure above:
+
+- A-2 &quot;Reading from file&quot; for the input
+- B-2 &quot;Dump to file&quot; for the output
+
+If you want A-1 (&quot;RTSP&quot; from the Video Streaming Server) and B-1 (&quot;HTTP POST&quot; to the Video Display Server),
+see [demo/README.md](demo/README.md) instead.
+
 ## 2-1. Install tools to operate the repository
 ### 2-1-1. pipx, Poetry
 - This project uses Poetry for dependency management, building a container that will be used in a pod forming the pipeline.
@@ -99,9 +108,11 @@ kubectl apply -f ./config_yaml/inter-step-buffer-service.yaml
 ```
 cd /path/to/numaflow-dra
 cp app.env.template app.env
+cp app.env.template fr2.env
 cp repo.env.template repo.env
 ```
 - Set your timezone for `TIME_AREA` and `TIME_ZONE` in repo.env
+- Set `FR_OUTPUT_WIDTH=1280` and `FR_OUTPUT_HEIGHT=720` in fr2.env
 - Other keys will be supported in a later process
 
 ## 2-3. Set up input data
@@ -134,9 +145,11 @@ cd /path/to/numaflow-dra
 
 ## 2-5. Make a log directory
 
+- Set `LOG_PATH=/var/tmp/logs/numaflow-dra/dci_poc_fr2/` in fr2.env
 - make log dir on worker node to record Vertex execution logs
 ```
 $ sudo mkdir -m 777 -p /var/tmp/logs/numaflow-dra/dci_poc
+$ sudo mkdir -m 777 -p /var/tmp/logs/numaflow-dra/dci_poc_fr2
 ```
 
 ## 2-6. Generate pipeline.yml
@@ -159,15 +172,10 @@ cd numaflow-dra/dci_poc/XXX/
 make image
 ```
 
-## 2-9. Start a Video Display Server
-- Set `RECEIVER_URL` appropriately in the `app.env` file.
-
-```
-cd /path/to/numaflow-dra/video-receive-server
-make start-receiver
-```
-
-## 2-10. Deploy pipelines
+## 2-9. Deploy pipelines
+- First of all, run the next two commands to create ConfigMap:
+  - `kubectl create configmap app-env-cm --from-env-file=app.env`
+  - `kubectl create configmap fr2-env-cm --from-env-file=fr2.env`
 - Select a pattern you want to deploy
 
 - pattern1:
@@ -182,6 +190,24 @@ make start-receiver
   - `kubectl apply -f config_yaml/dra-a100.yml`
   - `kubectl apply -f dci_poc/pipeline3.yml`
 
+- Wait for about a minute to let the pipeline output the processed frames to the output video file
+- Run `kubectl apply -f dci_poc/pipelineX.yml` (X is 1, 2, or 3) to stop the pipeline
+- Check the log directory on the worker node as follows whether the output video file `sink_XXXXXXXXXX.mp4` exists:
+
+```
+username@worker:~$ cd /var/tmp/logs/numaflow-dra/dci_poc_fr2
+username@worker:/var/tmp/logs/numaflow-dra/dci_poc_fr2$ ls
+filter-resize.log  sink.log  sink_1775630605.mp4
+username@worker:/var/tmp/logs/numaflow-dra/dci_poc_fr2$ grep -B1 'Video file' sink.log 
+2026-04-08 06:43:25,082 - console_logger - INFO - Quick start mode
+2026-04-08 06:43:25,084 - console_logger - INFO - Video file created: /var/tmp/logs/numaflow-dra/dci_poc_fr2/sink_1775630605.mp4
+--
+2026-04-08 06:43:36,603 - console_logger - INFO - Shutting down
+2026-04-08 06:43:36,607 - console_logger - INFO - Video file released
+```
+
+- Download the output video file and play it with a media player you like
+
 - FYI: For details, see [demo/README.md](./demo/README.md).
   - demo1: switch between pattern1 and pattern2
     - By switching the deployment pipeline, you can easily change an accelerator used in the pipeline.
@@ -190,6 +216,63 @@ make start-receiver
   
 
 That's all.
+
+# 3. Optional configurations
+
+## 3-1. OpenCV without CUDA
+
+In the quick start, the Filter Resize vertex uses CUDA-enabled OpenCV.
+
+If you want it use OpenCV without CUDA, set `FR_USE_CUDA=0` in `app.env` and re-create `app-env-cm` ConfigMap.
+
+## 3-2. Using distinct GPUs
+
+In the quick start, the Filter Resize and the Inference vertices share one T4 or A100.
+
+If you have two T4 or A100, and want the two vertices use distinct ones, edit `config_yaml/dra-XXX.yaml` and `dci_poc/pipelineX.yaml` as described in the subsections, and re-apply them.
+
+### 3-2-1. config_yaml/dra-XXX.yaml
+
+The following is for `dra-t4.yaml`. The same is true for `dra-a100.yaml`.
+
+```diff
+ apiVersion: resource.k8s.io/v1beta1
+-kind: ResourceClaim
++kind: ResourceClaimTemplate
+ metadata:
+   namespace: default
+   name: numaflow-dra-t4
+ spec:
+-  devices:
+-    requests:
+-      - name: gpu
+-        deviceClassName: nvidia-t4
++  spec:
++    devices:
++      requests:
++        - name: gpu
++          deviceClassName: nvidia-t4
+```
+
+### 3-2-2. dci_poc/pipelineX.yaml
+
+The following is for `pipeline1.yaml`. The same is true for `pipeline2.yaml` and `pipeline3.yaml`.
+
+```diff
+     - name: filter-resize
+ (..)
+       resourceClaims:
+         - name: gpu
+-          resourceClaimName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
++          resourceClaimTemplateName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
+ (..)
+     - name: inference
+ (..)
+       resourceClaims:
+         - name: gpu
+-          resourceClaimName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
++          resourceClaimTemplateName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
+```
 
 # Note: Environment used for verifying
 - k8s cluster: 1 control plane, 2 data Plane
@@ -212,16 +295,19 @@ That's all.
 | | Control Plane | Data Plane |
 | - | - | - |
 | Ubuntu  | 24.04.3 LTS | Same as left |
-| kubeadm | 1.33.2 | Same as left |
-| kubelet | 1.33.2 | Same as left |
-| kubectl | 1.33.2 | Same as left |
-| CRI-O   | 1.33.2 | Same as left |
-| Calico  | 3.30.1 | Same as left |
-| NVIDIA GPU Driver | - | 575.64.03-0ubuntu0.24.04.1 |
-| Numaflow | 1.6.0 | - |
+| kubeadm | 1.35.1 | Same as left |
+| kubelet | 1.35.1 | Same as left |
+| kubectl | 1.35.1 | Same as left |
+| CRI-O   | 1.35.1 | Same as left |
+| Calico  | 3.31.4 | Same as left |
+| NVIDIA GPU Driver | - | 580.126.09-0ubuntu0.24.04.2 |
+| Numaflow | 1.7.1 | - |
+| DRA driver | v25.12.0 | - |
 | MediaMTX | 1.14.0 | - |
 
 # LICENCE
 
-This project is licensed under the Apache License 2.0，but includes portions of code that are licensed under the MIT License as listed below.
+This project uses some code under the MIT License as listed below
 - video-streaming-server/mediamtx/
+
+However, this repository itself doesn't have a license applied for now.

@@ -1,0 +1,8 @@
+---
+- name: Setup graphical environment for demo
+  hosts: k8s_master
+  roles:
+    # nvidia_driver is required for hardware acceleration support.
+    # Run nvidia_driver first, then demo_remote_desktop to set runlevel to 5.
+    - nvidia_driver
+    - demo_remote_desktop

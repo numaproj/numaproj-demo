@@ -1,22 +1,19 @@
 import logging
 import os
 import sys
-from pathlib import Path
 
 import cv2
 import grpc
+import msgspec
 import numpy as np
 import pytest
-from dotenv import load_dotenv
 from pynumaflow import setup_logging
 from pynumaflow.mapstreamer import MapStreamAsyncServer
 from pynumaflow.mapstreamer.servicer.async_servicer import AsyncMapStreamServicer
 from tests.dci_poc.filter_resize_stream.utils import request_generator
 
-from dci_poc.vertex.filter_resize_stream import FilterResize
-from lib.vertex_key_io import (
-    VertexKeyIO,
-)
+from dci_poc.vertex_gpu_fr.filter_resize_stream import FilterResize
+from lib.message_spec import Payload
 
 logger = setup_logging(__name__)
 
@@ -29,9 +26,10 @@ def map_servicer_impl() -> AsyncMapStreamServicer:
     return udf
 
 
-def test_filter_resize_stream(map_stub) -> None:
-    # setup ENV
-    load_dotenv(str(Path(__file__).parent / '../../../../app.env'))
+def test_filter_resize_stream(
+    load_app_env_template,  # noqa: ARG001
+    map_stub,
+) -> None:
     fr_output_width = int(os.getenv('FR_OUTPUT_WIDTH', '416'))
     fr_output_height = int(os.getenv('FR_OUTPUT_HEIGHT', '416'))
 
@@ -59,14 +57,14 @@ def test_filter_resize_stream(map_stub) -> None:
     while idx < len(data_resp) - 1:
         assert len(data_resp[idx].results) == 1
 
-        keys = VertexKeyIO(data_resp[idx].results[0].keys)
-        value = np.frombuffer(data_resp[idx].results[0].value, np.uint8)
+        payload = msgspec.msgpack.decode(data_resp[idx].results[0].value, type=Payload)
+        value = np.frombuffer(payload.compressed_frame, np.uint8)
         img = cv2.imdecode(value, cv2.IMREAD_UNCHANGED)
 
         # check attributes
-        assert keys.get('frame_idx') == idx
-        assert keys.get('org_height') >= fr_output_height
-        assert keys.get('org_width') >= fr_output_width
+        assert payload.frame_index == idx
+        assert payload.original_height >= fr_output_height
+        assert payload.original_width >= fr_output_width
 
         # check resized image
         assert img is not None

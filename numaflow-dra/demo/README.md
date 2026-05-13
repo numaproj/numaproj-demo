@@ -83,11 +83,11 @@ Import our dashboard JSON file `demo/grafana-dashboard.json` to Grafana as follo
 
 Now you will see the **numaflow-dashboard** item on the Dashboards page.
 
-![New button then Import menu](../docs/assets/demo-grafana-new-import.png)
+![New button then Import menu](/docs/assets/demo-grafana-new-import.png)
 
-![Upload dashboard JSON file](../docs/assets/demo-grafana-import-dashboard.png)
+![Upload dashboard JSON file](/docs/assets/demo-grafana-import-dashboard.png)
 
-![Confirm import](../docs/assets/demo-grafana-confirm-import.png)
+![Confirm import](/docs/assets/demo-grafana-confirm-import.png)
 
 ## 1.3. Set up Remote desktop environment
 
@@ -164,7 +164,9 @@ You already have [mediamtx](https://github.com/bluenviron/mediamtx) binary extra
     runOnDemandRestart: true
 ```
 
-Also edit app.env as follows. Give each of the two `YOUR_CONTROL_PLANE_IP` placeholders the IP address of your control plane.
+Also edit app.env and fr2.env as follows. Give each of the two `YOUR_CONTROL_PLANE_IP` placeholders the IP address of your control plane.
+
+app.env:
 
 ```
 # SOURCE_INPUT_TYPE allows you to choose the input type.
@@ -179,11 +181,31 @@ VIDEO_FILE_SRC=
 # VIDEO_STREAM_SRC is the URL of the video stream.
 # Default value is configured specifically for CI Test
 VIDEO_STREAM_SRC='rtsp://YOUR_CONTROL_PLANE_IP:8554/my_stream'
+```
+
+fr2.env:
+
+```
+# Filter Resize config
+FR_USE_CUDA=1
+FR_OUTPUT_WIDTH=1280
+FR_OUTPUT_HEIGHT=720
+
+(snipped)
 
 RECEIVER_URL=http://YOUR_CONTROL_PLANE_IP:8000
 ```
 
-## 1.5. Set up pipeline.yaml for demo
+## 1.5. Create (or update) ConfigMap for pipelines
+
+```
+$ kubectl delete configmap app-env-cm --ignore-not-found=true
+$ kubectl create configmap app-env-cm --from-env-file=app.env
+$ kubectl delete configmap fr2-env-cm --ignore-not-found=true
+$ kubectl create configmap fr2-env-cm --from-env-file=fr2.env
+```
+
+## 1.6. Set up pipeline.yaml for demo
 - `cp dci_poc/pipeline*.yaml demo/`
 - In demo senario(3.6), you switch between pipelines that have the same name. you need to rename `metadata.name` to be same.
 
@@ -249,9 +271,9 @@ local-static-provisioner-prxx2   1/1     Running   0          39d
 
 Now you will see some rows on the dashboard. They will be used later.
 
-![Login Grafana](../docs/assets/demo-grafana-login.png)
+![Login Grafana](/docs/assets/demo-grafana-login.png)
 
-![Skip updating your password](../docs/assets/demo-grafana-update-your-password.png)
+![Skip updating your password](/docs/assets/demo-grafana-update-your-password.png)
 
 ## 2.5. Login remote desktop
 
@@ -409,16 +431,18 @@ $ ./00-stat-demo.sh
  176646  176648 ./mediamtx
  176648  177288 ffmpeg -stream_loop -1 -re -i ../6896028-uhd_3840_2160_15fps.mp4 -f mjpeg -q:v 0 -f rtsp rtsp://localhost:8554/my_stream
 + kubectl get pod
-NAME                                                   READY   STATUS    RESTARTS   AGE
-demo-dci-poc-kubecon-na-2025-daemon-65f7c79b8b-q9vm9   1/1     Running   0          62s ⭐️
-demo-dci-poc-kubecon-na-2025-filter-resize-0-vesgl     3/3     Running   0          62s ⭐️
-demo-dci-poc-kubecon-na-2025-in-0-jqpa1                3/3     Running   0          62s ⭐️
-demo-dci-poc-kubecon-na-2025-inference-0-dvvdd         3/3     Running   0          62s ⭐️
-demo-dci-poc-kubecon-na-2025-out-0-cvjod               3/3     Running   0          62s ⭐️
-isbsvc-default-js-0                                    3/3     Running   0          46d
-isbsvc-default-js-1                                    3/3     Running   0          46d
-isbsvc-default-js-2                                    3/3     Running   0          46d
-local-static-provisioner-prxx2                         1/1     Running   0          46d
+NAME                                        READY   STATUS    RESTARTS   AGE
+dci-poc-pipeline1-daemon-65f7c79b8b-q9vm9   1/1     Running   0          62s ⭐️
+dci-poc-pipeline1-filter-resize-0-vesgl     3/3     Running   0          62s ⭐️
+dci-poc-pipeline1-filter-resize2-0-saniq    3/3     Running   0          62s ⭐️
+dci-poc-pipeline1-in-0-jqpa1                3/3     Running   0          62s ⭐️
+dci-poc-pipeline1-inference-0-dvvdd         3/3     Running   0          62s ⭐️
+dci-poc-pipeline1-out-0-cvjod               3/3     Running   0          62s ⭐️
+dci-poc-pipeline1-stream-join-0-pqman       3/3     Running   0          62s ⭐️
+isbsvc-default-js-0                         3/3     Running   0          46d
+isbsvc-default-js-1                         3/3     Running   0          46d
+isbsvc-default-js-2                         3/3     Running   0          46d
+local-static-provisioner-prxx2              1/1     Running   0          46d
 + exit 0
 ```
 
@@ -432,7 +456,7 @@ $ ffplay -x 1280 -y 720 rtsp://localhost:8554/my_stream
 
 In addition, open a web browser and access http://localhost:8000/viewer to play the output video arrived at the Video Display Server.
 
-![Demo playing input and output videos](../docs/assets/demo-playing-input-and-output-videos.png)
+![Demo playing input and output videos](/docs/assets/demo-playing-input-and-output-videos.png)
 
 Note that it may be so slow to play both input and output videos in one desktop that the videos get fuzzy. In that case, close the ffplay window to stop playing the input video.
 
@@ -448,9 +472,9 @@ See the **Latency (\_sum / \_count)** row for average latency, and the **Traffic
 
 Assume that the frame rate of your input video is 15fps. We'd say the pipeline runs with good perfomance if the the Outbound Messages in the Traffic row is 15fps (same as the input rate) and the Total time for each vertex in the Latency row is 66.7ms (1s/15fps).
 
-![Grafana dashboard (latency)](../docs/assets/demo-grafana-latency.png)
+![Grafana dashboard (latency)](/docs/assets/demo-grafana-latency.png)
 
-![Grafana dashboard (traffic)](../docs/assets/demo-grafana-traffic.png)
+![Grafana dashboard (traffic)](/docs/assets/demo-grafana-traffic.png)
 
 ## 3.6. Switch pipelines
 

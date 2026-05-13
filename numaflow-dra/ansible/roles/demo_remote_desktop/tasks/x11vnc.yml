@@ -1,0 +1,28 @@
+- name: Install x11vnc with gdm3
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - x11vnc
+      - gdm3
+
+- name: Get the current default display manager
+  ansible.builtin.command: cat /etc/X11/default-display-manager
+  register: demo_remote_desktop_dm
+  changed_when: false
+
+- name: Set the default display manager to gdm3 if not yet
+  when: demo_remote_desktop_dm.stdout != "/usr/sbin/gdm3"
+  become: true
+  ansible.builtin.command: dpkg-reconfigure gdm3
+  notify:
+    - Reboot machine
+
+- name: Disable Wayland
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/gdm3/custom.conf
+    regexp: "^#WaylandEnable="
+    line: WaylandEnable=false
+  notify:
+    - Reboot machine

@@ -1,0 +1,6 @@
+---
+- name: Install monitoring system for Numaflow
+  hosts: k8s_master
+  roles:
+    - kube_prometheus
+    - numaflow_metrics

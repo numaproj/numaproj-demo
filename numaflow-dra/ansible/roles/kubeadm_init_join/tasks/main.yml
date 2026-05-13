@@ -1,0 +1,103 @@
+# Run on the master node (assume groups.k8s_master has only one host)
+- name: (Running "kubeadm init" and "kubeadm token create")
+  when: inventory_hostname in groups.k8s_master
+  block:
+    - name: Run kubeadm init
+      become: true
+      args:
+        creates: /etc/kubernetes/pki
+      # The host "cluster-endpoint" is defined in /etc/hosts.
+      # See the role "kubeadm_prerequisite" for details.
+      ansible.builtin.command: |-
+        kubeadm init \
+          --token-ttl 1s \
+          --kubernetes-version '{{ kubeadm_init_join.k8s_ver }}' \
+          --control-plane-endpoint cluster-endpoint \
+          --pod-network-cidr '{{ kubeadm_init_join.pod_network_cidr }}' \
+          --apiserver-advertise-address '{{ ansible_host }}' \
+          --cri-socket unix:///var/run/crio/crio.sock
+
+    - name: Ensure that $HOME/.kube directory exists on the master
+      ansible.builtin.file:
+        path: "{{ ansible_facts['env']['HOME'] }}/.kube"
+        state: directory
+        mode: "0700"
+
+    - name: Run "id -ng" to get the effective group name
+      ansible.builtin.command: id -ng
+      register: kubeadm_init_join_id_ng
+      changed_when: false
+
+    - name: Copy /etc/kubernetes/admin.conf to $HOME/.kube/config
+      # Should become because /etc/kubernetes/admin.conf is in 0600
+      become: true
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "{{ ansible_facts['env']['HOME'] }}/.kube/config"
+        owner: "{{ ansible_facts['env']['USER'] }}"
+        group: "{{ kubeadm_init_join_id_ng.stdout }}"
+        mode: "0600"
+        remote_src: true
+
+    - name: Fetch /etc/kubernetes/admin.conf to local
+      # Should become because /etc/kubernetes/admin.conf is in 0600
+      become: true
+      ansible.builtin.fetch:
+        src: /etc/kubernetes/admin.conf
+        dest: /tmp
+      register: kubeadm_init_join_fetch_admin_conf
+
+    - name: Run "kubectl get nodes" on the master
+      ansible.builtin.command: kubectl get nodes
+      register: kubeadm_init_join_nodes
+      changed_when: false
+
+    - name: Run "kubeadm token create" on the master
+      become: true
+      ansible.builtin.command: kubeadm token create --print-join-command --ttl 30s
+      register: kubeadm_init_join_token_create
+      changed_when: false
+
+- name: Assert that fetching /etc/kubernetes/admin.conf succeeded
+  ansible.builtin.assert:
+    that: not hostvars[groups.k8s_master[0]].kubeadm_init_join_fetch_admin_conf.failed
+  delegate_to: localhost
+
+- name: Assert that "kubectl get nodes" succeeded
+  ansible.builtin.assert:
+    that: not hostvars[groups.k8s_master[0]].kubeadm_init_join_nodes.failed
+  delegate_to: localhost
+
+- name: Assert that "kubeadm token create" succeeded
+  ansible.builtin.assert:
+    that: not hostvars[groups.k8s_master[0]].kubeadm_init_join_token_create.failed
+  delegate_to: localhost
+
+# Run on worker nodes (groups.k8s_worker may have multiple hosts)
+- name: (Running "kubeadm join")
+  when: inventory_hostname in groups.k8s_worker
+  block:
+    - name: Run "kubeadm join" on workers
+      when: >-
+        ansible_facts.hostname not in
+          hostvars[groups.k8s_master[0]].kubeadm_init_join_nodes.stdout
+      become: true
+      ansible.builtin.command: "{{ hostvars[groups.k8s_master[0]].kubeadm_init_join_token_create.stdout }}"
+
+    - name: Ensure that $HOME/.kube directory exists on workers
+      ansible.builtin.file:
+        path: "{{ ansible_facts['env']['HOME'] }}/.kube"
+        state: directory
+        mode: "0700"
+
+    - name: Distribute /etc/kubernetes/admin.conf to $HOME/.kube/config
+      ansible.builtin.copy:
+        src: "{{ hostvars[groups.k8s_master[0]].kubeadm_init_join_fetch_admin_conf.dest }}"
+        dest: "{{ ansible_facts['env']['HOME'] }}/.kube/config"
+        mode: "0600"
+
+# Run on the master node (assume groups.k8s_master has only one host)
+- name: Check if "kubectl get nodes" runs successfully on the master
+  when: ansible_host in groups.k8s_master
+  ansible.builtin.command: kubectl get nodes
+  changed_when: false

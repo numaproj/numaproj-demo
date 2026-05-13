@@ -768,4 +768,7 @@ paths:
   # do not match another entry.
   all_others:
   my_stream:
-    source: udp://127.0.0.1:1234
+    runOnDemand: >-
+      ffmpeg -stream_loop -1 -re -i poc_movie_test.mp4
+      -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnDemandRestart: true

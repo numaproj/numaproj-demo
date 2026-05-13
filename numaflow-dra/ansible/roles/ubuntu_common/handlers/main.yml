@@ -1,0 +1,3 @@
+- name: Reboot in order to disable automatic upgrades
+  become: true
+  ansible.builtin.reboot:

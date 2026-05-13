@@ -1,0 +1,29 @@
+- name: Update modprobe.d in order not to load nouveau
+  become: true
+  ansible.builtin.copy:
+    src: blacklist-nouveau.conf
+    dest: /etc/modprobe.d/blacklist-nouveau.conf
+    mode: "0644"
+  register: nvidia_driver_blacklist_nouveau
+
+- name: Update initramfs
+  # We could have this task to be a handler but will not do so because
+  # it is literally a task doing something meaningful, not a chore like
+  # a restart after configuration. It should be lined up in the main
+  # task sequence here, not in a separated handler sequence.
+  when: nvidia_driver_blacklist_nouveau.changed # noqa: no-handler
+  become: true
+  ansible.builtin.command: update-initramfs -u
+  notify:
+    - Reboot machine
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Check if nouveau is not loaded
+  ansible.builtin.command: lsmod
+  register: nvidia_driver_guardian_blacklist_nouveau
+  changed_when: false
+  failed_when: >-
+    nvidia_driver_guardian_blacklist_nouveau.rc >= 1
+    or "nouveau" in nvidia_driver_guardian_blacklist_nouveau.stdout

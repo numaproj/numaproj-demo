@@ -1,0 +1,15 @@
+# Required for kubernetes.core.k8s
+- name: Install kubernetes python module
+  ansible.builtin.pip:
+    name: kubernetes
+    state: present
+
+- name: Configure service/pod monitors for pipeline metrics
+  kubernetes.core.k8s:
+    namespace: default
+    definition: '{{ lookup("file", "../files/pipeline-metrics.yaml") | from_yaml_all }}'
+
+- name: Configure service monitor for jetstream ISB metrics
+  kubernetes.core.k8s:
+    namespace: default
+    definition: '{{ lookup("file", "../files/jetstream-metrics.yaml") | from_yaml }}'

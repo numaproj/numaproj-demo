@@ -1,0 +1,17 @@
+all:
+  vars:
+    ansible_user: EDIT_USERNAME
+    ansible_ssh_private_key_file: ~/.ssh/id_rsa
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    python_ver: 3.12
+    ansible_python_interpreter: '/home/{{ ansible_user }}/.venvs/ansible/bin/python{{ python_ver }}'
+# The nodes to execute `kubeadm init`. The number of those must be at odds.
+k8s_master:
+  hosts:
+    EDIT_HOSTNAME:
+      ansible_host: EDIT_HOST_IP
+# The nodes to execute `kubeadm join`. The number of those is more than one at least.
+k8s_worker:
+  hosts:
+    EDIT_HOSTNAME:
+      ansible_host: EDIT_HOST_IP

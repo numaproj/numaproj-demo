@@ -41,7 +41,6 @@ WORKDIR $PYSETUP_PATH
 
 ENV  PYTHONPATH="$PYSETUP_PATH"
 COPY ./lib/ ./lib/
-COPY app.env ./
 COPY $VERTEX_PATH $VERTEX_PATH
 
 WORKDIR $EXAMPLE_PATH
@@ -51,6 +50,6 @@ RUN poetry install --no-cache --no-root && \
 RUN chmod +x entry.sh
 
 ENTRYPOINT ["/dumb-init", "--"]
-CMD ["sh", "-c", "$EXAMPLE_PATH/entry.sh"]
+CMD ["sh", "-c", "exec $EXAMPLE_PATH/entry.sh"]
 
 EXPOSE 5000

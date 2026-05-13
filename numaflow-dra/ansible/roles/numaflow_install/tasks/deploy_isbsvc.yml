@@ -1,0 +1,32 @@
+- name: Copy inter-step-buffer-service.yml if not present
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/inter-step-buffer-service.yml"
+    dest: "{{ ansible_facts['env']['HOME'] }}/inter-step-buffer-service.yml"
+    mode: "0644"
+
+- name: Deploy InterStepBufferService
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ ansible_facts['env']['HOME'] }}/inter-step-buffer-service.yml"
+    namespace: default
+
+# It takes some time for ISBSVC pods to be created, so running "kubectl wait
+# [..] --for=condition=Ready" directly will fail with "error: no matching
+# resources found". Therefore, we solve it in two steps:
+#
+#   1. Wait for the ISBSVC pods to be created
+#   2. Wait for the created ISBSVC pods to be ready
+#
+- name: Wait for InterStepBufferService pod to be created
+  ansible.builtin.command: >-
+    kubectl wait pod -n default
+    -l numaflow.numaproj.io/isbsvc-name=default
+    --for=create
+  changed_when: false
+
+- name: Wait for InterStepBufferService pod to be ready
+  ansible.builtin.command: >
+    kubectl wait pod -n default
+    -l numaflow.numaproj.io/isbsvc-name=default
+    --for=condition=Ready --timeout=120s
+  changed_when: false

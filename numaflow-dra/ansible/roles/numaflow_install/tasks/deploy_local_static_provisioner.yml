@@ -1,0 +1,21 @@
+# Using a generated example is an easy way to install local-static-provisioner.
+# https://github.com/kubernetes-sigs/sig-storage-local-static-provisioner/tree/master/helm/generated_examples
+- name: Download baremetal-default-storage.yaml
+  ansible.builtin.get_url:
+    # noqa yaml[line-length]
+    url: https://raw.githubusercontent.com/kubernetes-sigs/sig-storage-local-static-provisioner/refs/heads/master/helm/generated_examples/baremetal-default-storage.yaml
+    dest: "{{ ansible_facts['env']['HOME'] }}/baremetal-default-storage.yaml"
+    mode: "0644"
+
+- name: Deploy local-static-provisioner
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ ansible_facts['env']['HOME'] }}/baremetal-default-storage.yaml"
+
+- name: Wait for local-static-provisioner pod to be ready
+  ansible.builtin.command: >
+    kubectl wait pod -n default
+    -l app.kubernetes.io/name=local-static-provisioner
+    --for=condition=Ready
+    --timeout=120s
+  changed_when: false

@@ -1,0 +1,8 @@
+exclude_paths:
+  # Ignore yaml errors on the downloaded files related to local-storage
+  - roles/numaflow_install/files/
+
+skip_list:
+  # We do not want redundant `changed_when`. Idempotent runs should be (and
+  # can be) kept by playbooks' tests.
+  - no-changed-when

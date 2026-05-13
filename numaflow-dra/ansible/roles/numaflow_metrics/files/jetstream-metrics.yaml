@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/part-of: numaflow
+  name: numaflow-isbsvc-jetstream-metrics
+spec:
+  endpoints:
+    - scheme: http
+      port: metrics
+      targetPort: 7777
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: isbsvc
+      app.kubernetes.io/managed-by: isbsvc-controller
+      app.kubernetes.io/part-of: numaflow
+      numaflow.numaproj.io/isbsvc-type: jetstream
+    matchExpressions:
+      - key: numaflow.numaproj.io/isbsvc-name
+        operator: Exists

@@ -1,7 +1,9 @@
 import asyncio
+from pathlib import Path
 
 import pytest
 import requests
+from dotenv import load_dotenv
 from pynumaflow import setup_logging
 from pynumaflow.mapstreamer import MapStreamAsyncServer, MapStreamer
 from pynumaflow.proto.mapper import map_pb2_grpc
@@ -34,6 +36,11 @@ class DummyMapIpml(MapStreamer):
 
 class DummySinkIpml(Sinker):
     pass
+
+
+@pytest.fixture(scope='session')
+def load_app_env_template() -> None:
+    load_dotenv(load_dotenv(str(Path(__file__).parent / '../../app.env.template')))
 
 
 @pytest.fixture

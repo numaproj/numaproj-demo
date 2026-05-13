@@ -39,10 +39,14 @@ endif
 	PYTHONPATH=../../ poetry run pytest -s ../../tests/dci_poc/$(APP)
 
 # Testing all at once (but no unit test yet)
-test-ut:
+test-vertex:
 	PYTHONPATH=../../ poetry run pytest -s ../../tests/dci_poc/inference_stream_yolov7 -v
 
 test-setup:
 	sudo apt-get update
 	sudo apt-get -y install $$(grep -vE '^\s*#|^\s*$$' apt-packages.txt | sed 's/\s*#.*$$//')
 	poetry install --with dev --no-root
+	[ -d ../../ml-models/official-yolov7 ] || \
+		git clone -b ${YOLOV7_GIT_VERSION} ${YOLOV7_GIT_URL} ../../ml-models/official-yolov7
+	[ -f ../../ml-models/official-yolov7/yolov7.pt ] || \
+		curl -Lf ${YOLOV7_DL_MODEL_WEIGHTS_URL} -o ../../ml-models/official-yolov7/yolov7.pt

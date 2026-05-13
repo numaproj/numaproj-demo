@@ -1,0 +1,7 @@
+---
+- name: Enable DRA feature
+  hosts: k8s_master
+  roles:
+    - helm
+    - feature_gates_dra_master
+    - dra_driver_nvidia_gpu

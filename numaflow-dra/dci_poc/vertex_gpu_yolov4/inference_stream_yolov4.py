@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import Any
 
 import cv2
+import msgspec
 import numpy as np
 import torch
-from dotenv import load_dotenv
 from pynumaflow import setup_logging
 from pynumaflow.mapstreamer import Datum, MapStreamAsyncServer, MapStreamer, Message
 
@@ -22,15 +22,11 @@ from lib.log import (
     add_new_filehandler,
     set_logger_log_level,
 )
-from lib.vertex_key_io import (
-    VertexKeyIO,
-)
+from lib.message_spec import BoundingBox, Payload
 
 
 class Infer(MapStreamer):
     def __init__(self):
-        load_dotenv(str(Path(__file__).parent / '../../app.env'))
-
         # setup logger
         self.logger = setup_logging('console_logger')
         log_path = os.getenv('LOG_PATH')
@@ -109,7 +105,7 @@ class Infer(MapStreamer):
             return None
 
         arr = np.frombuffer(value, np.uint8)
-        img = cv2.imdecode(arr, cv2.IMREAD_UNCHANGED)
+        img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
 
         if img is None:
             self.logger.error(f'cv2.imdecode failed: buffer_len={len(value)}')
@@ -117,18 +113,22 @@ class Infer(MapStreamer):
         return img
 
     async def handler(self, _keys: list[str], datum: Datum) -> AsyncIterable[Message]:
-        resized_frame = self._decompress_frame_np(datum.value)
+        payload_in = msgspec.msgpack.decode(datum.value, type=Payload)
+        resized_frame_bgr = self._decompress_frame_np(payload_in.compressed_frame)
+
+        # Note: YOLOv4's model takes an RGB (not a BGR) image but we do not
+        # need to convert color of the resized_frame_bgr because the
+        # function do_detect (called by self.infer) does that conversion.
+        # So what we have to do is only giving a BGR image to the do_detect.
 
         _ = datum.event_time
         _ = datum.watermark
 
-        vk_io = VertexKeyIO(datum.keys)
-
         # inference data on GPU
-        frame_idx = vk_io['frame_idx']
+        frame_idx = payload_in.frame_index
         self.logger.info(f'frame_index: {frame_idx}')
-        self.logger.debug(f'resized_frame: {resized_frame}')
-        bboxes = self.infer(resized_frame)
+        self.logger.debug(f'resized_frame_bgr: {resized_frame_bgr}')
+        bboxes = self.infer(resized_frame_bgr)
         self.logger.info(f'infer_result: {bboxes}')
 
         # The Objects included in the dataset are not being detected
@@ -137,17 +137,25 @@ class Infer(MapStreamer):
             yield Message.to_drop()
             return
 
-        vk_io.add('box_len', len(bboxes))
-        # fmt: off
-        for i, box in enumerate(bboxes):
-            vk_io.add(f'box_{i}_confidence',   box[i][4])
-            vk_io.add(f'box_{i}_class_id',     box[i][6])
-            vk_io.add(f'box_{i}_LeftUpX',      box[i][0])
-            vk_io.add(f'box_{i}_LeftUpY',      box[i][1])
-            vk_io.add(f'box_{i}_RightDownX',   box[i][2])
-            vk_io.add(f'box_{i}_RightDownY',   box[i][3])
-        self.logger.debug(f'{vk_io.items()}')
-        # fmt: on
+        payload_out = Payload(
+            frame_index=payload_in.frame_index,
+            original_height=payload_in.original_height,
+            original_width=payload_in.original_width,
+        )
+
+        # Output only the first bounding box to emphasize the difference
+        # of the YOLOv4 and the YOLOv7 pipelines.
+        payload_out.bounding_boxes.append(
+            BoundingBox(
+                confidence=float(bboxes[0][0][4]),
+                class_id=int(bboxes[0][0][6]),
+                top_left_x=float(bboxes[0][0][0]),
+                top_left_y=float(bboxes[0][0][1]),
+                bottom_right_x=float(bboxes[0][0][2]),
+                bottom_right_y=float(bboxes[0][0][3]),
+            )
+        )
+        self.logger.debug(f'{payload_out}')
 
         # str_size = 0
         # for s in vk_io.keys_list:
@@ -156,10 +164,7 @@ class Infer(MapStreamer):
         # self.logger.debug(f'{sys.getsizeof(pickle.dumps(resized_frame))}')
         # self.logger.debug(f'{str_size}')
 
-        yield Message(
-            value=datum.value,
-            keys=vk_io.keys_list,
-        )
+        yield Message(msgspec.msgpack.encode(payload_out))
 
 
 if __name__ == '__main__':
