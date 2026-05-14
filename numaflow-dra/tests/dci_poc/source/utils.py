@@ -23,9 +23,10 @@ def request_generator(count, session=1, handshake=True):
 def launch_mediamtx_and_wait_ready() -> subprocess.Popen:
     p = subprocess.Popen(
         [
-            '../../video-streaming-server/mediamtx/mediamtx',
-            '../../video-streaming-server/mediamtx/mediamtx.yml',
+            './mediamtx',
+            './mediamtx.yml.template',
         ],
+        cwd='../../video-streaming-server/mediamtx',
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
     )
@@ -53,65 +54,5 @@ def launch_mediamtx_and_wait_ready() -> subprocess.Popen:
                 run = True
                 t.cancel()
                 break
-
-    return p
-
-
-def launch_ffmpeg_and_wait_ready() -> subprocess.Popen:
-    p = subprocess.Popen(
-        [
-            '/usr/bin/ffmpeg',
-            '-stream_loop',
-            '-1',
-            '-re',
-            '-loglevel',
-            'debug',
-            '-i',
-            '/tmp/poc_movie_test.mp4',
-            '-c:v',
-            'libx264',
-            '-pix_fmt',
-            'yuv420p',
-            '-preset',
-            'ultrafast',
-            '-b:v',
-            '600k',
-            '-f',
-            'mpegts',
-            'udp://127.0.0.1:1234?pkt_size=1316',
-        ],
-        # stdout = subprocess.DEVNULL,
-        # stderr = subprocess.DEVNULL)
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    run = False
-
-    def kill_process(p) -> None:
-        p.kill()
-
-    t = Timer(10, kill_process, [p])
-    t.start()
-
-    while not run:
-        _logger.info('waiting for ffmpeg......')
-        time.sleep(1)
-
-        while True:
-            if p.poll() is not None:
-                msg = 'ffmpeg not running or timeout error'
-                raise ValueError(msg)
-
-            line = p.stdout.readline()
-            _logger.info(line.strip().decode())
-            if b'Successfully opened the file.' in line:
-                _logger.info('started ffmpeg')
-                run = True
-                t.cancel()
-                break
-            if b'ERR' in line:
-                p.kill()
-                msg = f'ffmpeg Error: {line.strip().decode()}'
-                raise ValueError(msg)
 
     return p

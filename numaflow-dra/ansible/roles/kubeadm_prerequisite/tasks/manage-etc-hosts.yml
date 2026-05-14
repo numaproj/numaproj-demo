@@ -1,0 +1,31 @@
+- name: Stat /etc/cloud/cloud.cfg
+  ansible.builtin.stat:
+    path: /etc/cloud/cloud.cfg
+  register: kubeadm_prerequisite_cloud_cfg
+
+- name: (Configuring manage_etc_hosts)
+  when: kubeadm_prerequisite_cloud_cfg.stat.exists
+  block:
+    - name: Ensure that there is /etc/cloud/cloud.cfg.d directory
+      become: true
+      ansible.builtin.file:
+        path: /etc/cloud/cloud.cfg.d
+        mode: "0755"
+        state: directory
+
+    - name: >-
+        Configure manage_etc_hosts in order not to automatically override
+        /etc/hosts after reboot
+      become: true
+      ansible.builtin.copy:
+        src: cloud-cfg-99-manage-etc-hosts.cfg
+        dest: /etc/cloud/cloud.cfg.d/99-manage-etc-hosts.cfg
+        mode: "0644"
+
+- name: Add Kubernetes master and worker hosts to /etc/hosts
+  become: true
+  ansible.builtin.template:
+    src: etc-hosts.j2
+    dest: /etc/hosts
+    mode: "0644"
+    backup: true

@@ -1,0 +1,14 @@
+# The following comment is from /etc/apt/sources.list on Ubuntu 24.04:
+#
+#   Ubuntu sources have moved to the /etc/apt/sources.list.d/ubuntu.sources
+#   file, which uses the deb822 format. Use deb822-formatted .sources files
+#   to manage package sources in the /etc/apt/sources.list.d/ directory.
+#   See the sources.list(5) manual page for details.
+#
+- name: Have /etc/apt/sources.list empty
+  become: true
+  ansible.builtin.copy:
+    src: etc-apt-sources.list
+    dest: /etc/apt/sources.list
+    mode: "0644"
+    backup: true

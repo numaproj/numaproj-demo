@@ -1,0 +1,40 @@
+- name: Ensure that $HOME/git directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_facts['env']['HOME'] }}/git"
+
+- name: Checkout kube-prometheus
+  ansible.builtin.git:
+    repo: https://github.com/prometheus-operator/kube-prometheus.git
+    dest: "{{ ansible_facts['env']['HOME'] }}/git/kube-prometheus"
+    version: "{{ kube_prometheus.kube_prometheus_ver }}"
+
+# kubernetes.core.k8s does not support applying resource from a directory.
+# Instead, we use kubectl command.
+- name: Check if there is monitoring namespace
+  ansible.builtin.command: kubectl get namespaces -o name
+  register: kube_prometheus_namespaces
+  changed_when: false
+
+- name: Install kube-prometheus CRDs
+  when: >-
+    "namespace/monitoring" not in kube_prometheus_namespaces.stdout_lines
+  ansible.builtin.command: kubectl create -f '{{ ansible_facts['env']['HOME'] }}/git/kube-prometheus/manifests/setup'
+
+- name: Wait until all CRDs in monitoring namespace are established
+  ansible.builtin.command: kubectl wait --timeout 60s --for condition=Established -n monitoring --all crds
+  changed_when: false
+
+# Same as above.
+- name: Check if there is prometheus-k8s service in monitoring namespace
+  ansible.builtin.command: kubectl get services -o name -n monitoring
+  register: kube_prometheus_services
+  changed_when: false
+
+- name: Install kube-prometheus services
+  when: >-
+    "service/prometheus-k8s" not in kube_prometheus_services.stdout_lines
+  ansible.builtin.command: kubectl create -f '{{ ansible_facts['env']['HOME'] }}/git/kube-prometheus/manifests'
+
+- name: Wait until all pods in monitoring namespace are ready
+  ansible.builtin.command: kubectl wait --timeout 60s --for condition=Ready -n monitoring --all pods
+  changed_when: false

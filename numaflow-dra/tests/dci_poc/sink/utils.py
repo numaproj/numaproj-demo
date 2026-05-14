@@ -1,10 +1,11 @@
 import os
 
 import cv2
+import msgspec
 from pynumaflow.proto.sinker import sink_pb2
 from tests.testing_utils import get_time_args, mock_4k_frame
 
-from lib.vertex_key_io import VertexKeyIO
+from lib.message_spec import BoundingBox, Payload
 
 
 def request_generator(count, session=1, handshake=True):
@@ -23,23 +24,29 @@ def request_generator(count, session=1, handshake=True):
             frame = mock_4k_frame()
             resized_frame = cv2.resize(frame, (fr_output_width, fr_output_height))
             _, buf = cv2.imencode('.jpg', resized_frame, [cv2.IMWRITE_JPEG_QUALITY, jpeg_quality])
-            vk_io = VertexKeyIO()
-            vk_io.add('frame_idx', read_idx)
-            vk_io.add('box_len', 1)
-            vk_io.add('box_0_confidence', 0.9)
-            vk_io.add('box_0_class_id', 1)
-            vk_io.add('box_0_LeftUpX', 0.3)
-            vk_io.add('box_0_LeftUpY', 0.3)
-            vk_io.add('box_0_RightDownX', 0.7)
-            vk_io.add('box_0_RightDownY', 0.7)
+            payload = Payload(
+                frame_index=read_idx,
+                original_height=frame.shape[0],
+                original_width=frame.shape[1],
+                bounding_boxes=[
+                    BoundingBox(
+                        confidence=0.9,
+                        class_id=1,
+                        top_left_x=0.3,
+                        top_left_y=0.3,
+                        bottom_right_x=0.7,
+                        bottom_right_y=0.7,
+                    )
+                ],
+                compressed_frame=buf.tobytes(),
+            )
 
             req = sink_pb2.SinkRequest(
                 request=sink_pb2.SinkRequest.Request(
                     id='test-id-' + str(i),
                     event_time=event_time_timestamp,
                     watermark=watermark_timestamp,
-                    value=buf.tobytes(),
-                    keys=vk_io.keys_list,
+                    value=msgspec.msgpack.encode(payload),
                 ),
             )
             read_idx += 1

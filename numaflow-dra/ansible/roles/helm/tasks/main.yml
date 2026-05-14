@@ -1,0 +1,17 @@
+- name: Add GPG key for Helm deb repository
+  become: true
+  ansible.builtin.apt_key:
+    url: https://packages.buildkite.com/helm-linux/helm-debian/gpgkey
+    keyring: /etc/apt/keyrings/helm-keyring.gpg
+
+- name: Add Helm deb repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/helm-keyring.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main"
+    filename: helm
+
+- name: Install Helm
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    name: helm

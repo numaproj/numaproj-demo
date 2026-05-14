@@ -1,0 +1,19 @@
+- name: Enable IPv4 forwarding
+  ansible.builtin.import_tasks: enable-ipv4-forwarding.yml
+
+- name: Install Kubernetes CRI-O
+  ansible.builtin.import_tasks: install-k8s-crio.yml
+
+- name: Enable kubelet and ensure it is started
+  become: true
+  ansible.builtin.systemd:
+    name: kubelet
+    enabled: true
+    state: started
+
+- name: Enable crio and ensure it is started
+  become: true
+  ansible.builtin.systemd:
+    name: crio
+    enabled: true
+    state: started

@@ -1,0 +1,11 @@
+- name: Install Numaflow
+  ansible.builtin.import_tasks: install_numaflow.yml
+
+- name: Deploy local-static-provisioner
+  ansible.builtin.import_tasks: deploy_local_static_provisioner.yml
+
+- name: Deploy Persistent Volume
+  ansible.builtin.import_tasks: deploy_pv.yml
+
+- name: Deploy ISBSVC
+  ansible.builtin.import_tasks: deploy_isbsvc.yml

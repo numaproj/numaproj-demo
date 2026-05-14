@@ -4,10 +4,8 @@ wget
 # deps for building python deps
 build-essential
 libopencv-dev
-libyaml-dev
 libgl1
 libglx-mesa0
-libturbojpeg0-dev
 
 # Debug
 netcat-openbsd

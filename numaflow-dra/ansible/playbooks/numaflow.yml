@@ -1,0 +1,5 @@
+---
+- name: Install Numaflow
+  hosts: k8s_master
+  roles:
+    - numaflow_install

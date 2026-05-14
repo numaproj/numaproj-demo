@@ -1,0 +1,48 @@
+- name: Add GPG key for Kubernetes repository
+  become: true
+  ansible.builtin.apt_key:
+    url: "https://pkgs.k8s.io/core:/stable:/{{ kubeadm_install.package_ver }}/deb/Release.key"
+    keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Add Kubernetes repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ kubeadm_install.package_ver }}/deb/ /"
+    filename: kubernetes
+
+- name: Add GPG key for CRI-O repository
+  become: true
+  ansible.builtin.apt_key:
+    url: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/{{ kubeadm_install.package_ver }}/deb/Release.key"
+    keyring: /etc/apt/keyrings/cri-o-apt-keyring.gpg
+
+- name: Add CRI-O repository
+  become: true
+  ansible.builtin.apt_repository:
+    # It's more intuitive to be kept in one line than separated into
+    # multiple lines because, in /etc/apt/sources.list.d/*.list, each
+    # entry consists of one line, like as this repo line.
+    # yamllint disable rule:line-length
+    repo: "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/{{ kubeadm_install.package_ver }}/deb/ /"
+    filename: cri-o
+
+- name: Install Kubernetes and CRI-O
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - kubeadm={{ kubeadm_install.k8s_ver }}
+      - kubelet={{ kubeadm_install.k8s_ver }}
+      - kubectl={{ kubeadm_install.k8s_ver }}
+      - cri-o={{ kubeadm_install.crio_ver }}
+
+- name: Hold Kubernetes and CRI-O
+  become: true
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubeadm
+    - kubelet
+    - kubectl
+    - cri-o

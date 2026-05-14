@@ -1,0 +1,16 @@
+- name: Setup Ubuntu desktop
+  ansible.builtin.import_tasks: ubuntu-desktop.yml
+
+- name: Setup x11vnc
+  ansible.builtin.import_tasks: x11vnc.yml
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Check if the default target is graphical.target
+  ansible.builtin.command: systemctl get-default
+  register: demo_remote_desktop_guardian_target
+  changed_when: false
+  failed_when: >-
+    demo_remote_desktop_guardian_target.rc >= 1
+    or demo_remote_desktop_guardian_target.stdout != "graphical.target"

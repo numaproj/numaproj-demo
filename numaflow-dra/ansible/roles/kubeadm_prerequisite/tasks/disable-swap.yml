@@ -1,0 +1,25 @@
+- name: Configure /etc/fstab to disable all swaps after reboot
+  become: true
+  ansible.builtin.replace:
+    backup: true
+    path: /etc/fstab
+    regexp: '^(?![ \t]*#)(?P<line>[^ \t]+[ \t]+[^ \t]+[ \t]+swap[ \t].*)$'
+    replace: '#\g<line>'
+  notify:
+    - Reboot in order to disable all swaps in /etc/fstab
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Check if all swaps are disabled
+  args:
+    # For set -o pipefail
+    executable: /bin/bash
+  ansible.builtin.shell: |-
+    set -o pipefail
+    grep '^SwapTotal:' /proc/meminfo | awk '{print $2}'
+  register: kubeadm_prerequisite_guardian_disable_swap
+  changed_when: false
+  failed_when: >-
+    kubeadm_prerequisite_guardian_disable_swap.rc >= 1
+    or kubeadm_prerequisite_guardian_disable_swap.stdout != "0"

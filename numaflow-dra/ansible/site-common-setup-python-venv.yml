@@ -1,0 +1,22 @@
+---
+- name: Create Python virtual environment on remote hosts
+  hosts: all
+  tasks:
+    - name: Ensure python3-venv package is installed (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: true
+        name: python3-venv
+        state: present
+      become: true
+
+    - name: Create Python virtual environment if not exists
+      ansible.builtin.command: python3 -m venv /home/{{ ansible_user }}/.venvs/ansible
+      args:
+        creates: /home/{{ ansible_user }}/.venvs/ansible/bin/activate
+
+    - name: Upgrade pip in virtualenv
+      ansible.builtin.command: /home/{{ ansible_user }}/.venvs/ansible/bin/python{{ python_ver }} -m pip install --upgrade pip
+
+    # "package" python module must be installed beforehand to use ansible.builtin.pip module
+    - name: Install packaging module
+      ansible.builtin.command: /home/{{ ansible_user }}/.venvs/ansible/bin/python{{ python_ver }} -m pip install packaging

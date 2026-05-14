@@ -1,0 +1,25 @@
+# multi-user.target means runlevel 3
+- name: Check if the default target is multi-user.target
+  ansible.builtin.command: systemctl get-default
+  register: nvidia_driver_systemctl_get_default
+  changed_when: false
+
+- name: (Changing the default target to multi-user.target)
+  when: nvidia_driver_systemctl_get_default.stdout != "multi-user.target"
+  block:
+    - name: Change the default target to multi-user.target
+      become: true
+      ansible.builtin.command: systemctl set-default multi-user.target
+      notify:
+        - Reboot machine
+
+    - name: Flush handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: Check again if the default target is multi-user.target
+      ansible.builtin.command: systemctl get-default
+      register: nvidia_driver_guardian_systemctl_get_default
+      changed_when: false
+      failed_when: >-
+        nvidia_driver_guardian_systemctl_get_default.rc >= 1
+        or nvidia_driver_guardian_systemctl_get_default.stdout != "multi-user.target"

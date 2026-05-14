@@ -15,8 +15,9 @@ spec:
             env:
               - name: SCRIPT
                 value: source
-              - name: SOURCE_INPUT_TYPE
-                value: file # file or stream
+            envFrom:
+              - configMapRef:
+                  name: app-env-cm
             volumeMounts:
               - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
                 name: log-volume
@@ -33,23 +34,28 @@ spec:
           hostPath:
             path: /mnt/whitebox
             type: DirectoryOrCreate
-      containerTemplate:
-        env:
-          - name: NUMAFLOW_RUNTIME
-            value: golang
     - name: filter-resize
       scale:
         max: 1
       udf:
         container:
-          image: $REGISTRY_URL/numaflow/dci-poc:stable
+          image: $REGISTRY_URL/numaflow/dci-poc-gpu-fr:stable
           imagePullPolicy: Always
           env:
             - name: SCRIPT
               value: fr-stream
+          envFrom:
+            - configMapRef:
+                name: app-env-cm
           volumeMounts:
             - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
               name: log-volume
+          resources:
+            claims:
+              - name: gpu
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
       limits:
         readBatchSize: 1
       volumes:
@@ -57,10 +63,35 @@ spec:
           hostPath:
             path: /var/tmp/logs/numaflow-dra/dci_poc
             type: DirectoryOrCreate
-      containerTemplate:
-        env:
-          - name: NUMAFLOW_RUNTIME
-            value: golang
+    - name: filter-resize2
+      scale:
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc-gpu-fr:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: fr-stream
+          envFrom:
+            - configMapRef:
+                name: fr2-env-cm
+          volumeMounts:
+            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc_fr2
+              name: log-volume
+          resources:
+            claims:
+              - name: gpu
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/tmp/logs/numaflow-dra/dci_poc_fr2
+            type: DirectoryOrCreate
     - name: inference
       scale:
         max: 1
@@ -71,6 +102,9 @@ spec:
           env:
             - name: SCRIPT
               value: inf-stream-yolov7
+          envFrom:
+            - configMapRef:
+                name: app-env-cm
           volumeMounts:
             - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
               name: log-volume
@@ -79,7 +113,7 @@ spec:
               - name: gpu
       resourceClaims:
         - name: gpu
-          resourceClaimTemplateName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
+          resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
       limits:
         readBatchSize: 1
       volumes:
@@ -87,10 +121,37 @@ spec:
           hostPath:
             path: /var/tmp/logs/numaflow-dra/dci_poc
             type: DirectoryOrCreate
-      containerTemplate:
-        env:
-          - name: NUMAFLOW_RUNTIME
-            value: golang
+    - name: stream-join
+      partitions: 1
+      scale:
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: reduce
+          envFrom:
+            - configMapRef:
+                name: app-env-cm
+          volumeMounts:
+            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
+              name: log-volume
+        groupBy:
+          window:
+            accumulator:
+              timeout: 1m
+          keyed: false
+          storage:
+            no_store: {}
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/tmp/logs/numaflow-dra/dci_poc
+            type: DirectoryOrCreate
     - name: out
       scale:
         max: 1
@@ -101,24 +162,30 @@ spec:
             imagePullPolicy: Always
             volumeMounts:
               - name: log-volume
-                mountPath: /var/tmp/logs/numaflow-dra/dci_poc
+                mountPath: /var/tmp/logs/numaflow-dra/dci_poc_fr2
             env:
               - name: SCRIPT
                 value: sink
+            envFrom:
+              - configMapRef:
+                  name: fr2-env-cm
+      limits:
+        readBatchSize: 1
       volumes:
         - name: log-volume
           hostPath:
-            path: /var/tmp/logs/numaflow-dra/dci_poc
+            path: /var/tmp/logs/numaflow-dra/dci_poc_fr2
             type: DirectoryOrCreate
-      containerTemplate:
-        env:
-          - name: NUMAFLOW_RUNTIME
-            value: golang
-          
   edges:
     - from: in
       to: filter-resize
+    - from: in
+      to: filter-resize2
     - from: filter-resize
       to: inference
     - from: inference
+      to: stream-join
+    - from: filter-resize2
+      to: stream-join
+    - from: stream-join
       to: out

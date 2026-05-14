@@ -33,13 +33,14 @@ endif
 	PYTHONPATH=../../ poetry run pytest -s ../../tests/dci_poc/$(APP)
 
 # Testing all at once
-test-ut:
+test-vertex:
 	PYTHONPATH=../../ SOURCE_INPUT_TYPE=file poetry run pytest -s ../../tests/dci_poc/source/test_source.py::test_source_under_file_src -v
 	PYTHONPATH=../../ SOURCE_INPUT_TYPE=stream poetry run pytest -s ../../tests/dci_poc/source/test_source.py::test_source_under_stream_src -v
-	PYTHONPATH=../../ poetry run pytest -s ../../tests/dci_poc/filter_resize_stream -v
+	PYTHONPATH=../../ poetry run pytest -s ../../tests/dci_poc/reduce -v
 	PYTHONPATH=../../ poetry run pytest -s ../../tests/dci_poc/sink -v
 
 test-setup:
 	sudo apt-get update
 	sudo apt-get -y install $$(grep -vE '^\s*#|^\s*$$' apt-packages.txt | sed 's/\s*#.*$$//')
 	poetry install --with dev --no-root
+	./test-setup-video.sh

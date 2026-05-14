@@ -1,0 +1,40 @@
+ubuntu_common:
+  timezone: Asia/Tokyo
+
+# kubernetes-cluster.yml
+kubeadm_install:
+  package_ver: v1.35
+  k8s_ver: 1.35.2-1.1
+  crio_ver: 1.35.2-1.1
+
+kubeadm_init_join:
+  # This must be the same as kubeadm_install.k8s_ver
+  k8s_ver: 1.35.2
+  # pod_network_cidr: A CIDR block passed to kubeadm init --pod-network-cidr.
+  # It can be within any of IPv4 private address ranges but MUST NOT overlap
+  # any of the host networks [1].
+  #
+  # Calico will automatically detect which IP address range to use for pod IPs
+  # based on the value provided via --pod-network-cidr [2], so we do not need
+  # to edit CALICO_IPV4POOL_CIDR in the calico.yaml.
+  #
+  # [1] https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network
+  # [2] https://github.com/kubernetes/website/commit/c0f669ab681901f5fda6771b42768781495c12c6
+  pod_network_cidr: 10.244.0.0/16
+
+calico:
+  # https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#supported-versions
+  calico_ver: v3.31.4
+
+dra_driver_nvidia_gpu:
+  k8s_dra_driver_gpu_ver: v25.12.0
+
+numaflow_install:
+  numaflow_version: v1.7.1
+
+kube_prometheus:
+  # See the compatibility section [1] and tags [2] to decide your
+  # version of kube-prometheus stack being installed.
+  # [1] https://github.com/prometheus-operator/kube-prometheus?tab=readme-ov-file#compatibility
+  # [2] https://github.com/prometheus-operator/kube-prometheus/tags
+  kube_prometheus_ver: v0.16.0

@@ -1,0 +1,14 @@
+---
+- name: Show a warning message in nvidia-gpu-support playbook
+  hosts: localhost
+  tasks:
+    - name: Show a warning message
+      ansible.builtin.debug:
+        msg: "Warning!: assume that all worker nodes are equipped with NVIDIA GPUs"
+
+- name: Setup Nvidia GPU Support
+  hosts: k8s_worker
+  roles:
+    - nvidia_driver
+    - nvidia_container_toolkit
+    - nvidia_cuda_mps_control

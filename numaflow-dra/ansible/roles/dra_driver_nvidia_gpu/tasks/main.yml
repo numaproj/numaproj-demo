@@ -1,0 +1,69 @@
+- name: Ensure that $HOME/git directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_facts['env']['HOME'] }}/git"
+    mode: "0755"
+    state: directory
+
+- name: Git clone dra-driver-nvidia-gpu
+  ansible.builtin.git:
+    repo: https://github.com/kubernetes-sigs/dra-driver-nvidia-gpu.git
+    dest: "{{ ansible_facts['env']['HOME'] }}/git/dra-driver-nvidia-gpu"
+    version: "{{ dra_driver_nvidia_gpu.k8s_dra_driver_gpu_ver }}"
+
+- name: Get all nodes info
+  kubernetes.core.k8s_info:
+    kind: Node
+  register: dra_driver_nvidia_gpu_nodes_info
+
+- name: Label worker nodes if not labeled for kubelet plugin deployment
+  when:
+    - item.metadata.labels['nvidia.com/gpu.present']|default("false") != "true"
+    - item.metadata.labels['node-role.kubernetes.io/control-plane'] is not defined
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Node
+    name: "{{ item.metadata.name }}"
+    merge_type:
+      - strategic-merge
+    definition:
+      metadata:
+        labels:
+          # Should be a string (double-quoted) "true", not a boolean (bare) true
+          nvidia.com/gpu.present: "true"
+  loop: "{{ dra_driver_nvidia_gpu_nodes_info.resources }}"
+
+- name: (Installing dra-driver-nvidia-gpu)
+  block:
+    - name: Check the version of dra-driver-nvidia-gpu already installed
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: nvidia-dra-driver-gpu
+        name: nvidia-dra-driver-gpu-controller
+      register: dra_driver_nvidia_gpu_controller
+
+    - name: Install dra-driver-nvidia-gpu
+      when: >-
+        dra_driver_nvidia_gpu_controller.resources|length == 0
+        or "v" + dra_driver_nvidia_gpu_controller.resources[0].metadata.labels["app.kubernetes.io/version"]
+          != dra_driver_nvidia_gpu.k8s_dra_driver_gpu_ver
+      args:
+        chdir: "{{ ansible_facts['env']['HOME'] }}/git/dra-driver-nvidia-gpu/demo/clusters/kind"
+      ansible.builtin.command: ./install-dra-driver-gpu.sh
+
+    - name: Check again the version of dra-driver-nvidia-gpu already installed
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: nvidia-dra-driver-gpu
+        name: nvidia-dra-driver-gpu-controller
+      register: dra_driver_nvidia_gpu_controller_guardian
+      changed_when: false
+      failed_when: >-
+        dra_driver_nvidia_gpu_controller_guardian.resources|length == 0
+        or "v" + dra_driver_nvidia_gpu_controller_guardian.resources[0].metadata.labels["app.kubernetes.io/version"]
+          != dra_driver_nvidia_gpu.k8s_dra_driver_gpu_ver
+
+- name: Wait until the expected pods are ready
+  ansible.builtin.command: |-
+    kubectl wait --timeout 60s --for condition=Ready -n nvidia-dra-driver-gpu \
+      -l app.kubernetes.io/name=nvidia-dra-driver-gpu pod
+  changed_when: false

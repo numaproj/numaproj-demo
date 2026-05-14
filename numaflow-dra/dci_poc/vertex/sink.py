@@ -2,14 +2,14 @@ import json
 import logging
 import os
 import sys
+import time
 from collections.abc import AsyncIterable, Callable
 from dataclasses import dataclass
-from pathlib import Path
 
 import cv2
+import msgspec
 import numpy as np
 import requests
-from dotenv import load_dotenv
 from pynumaflow import setup_logging
 from pynumaflow.sinker import Datum, Response, Responses, SinkAsyncServer, Sinker
 
@@ -17,46 +17,44 @@ from lib.log import (
     add_new_filehandler,
     set_logger_log_level,
 )
-from lib.vertex_key_io import (
-    VertexKeyIO,
-)
+from lib.message_spec import Payload
 
 
 @dataclass
 class BBox:
     confidence: np.float32
     class_id: np.int64 | str
-    LeftUpX: np.float32
-    LeftUpY: np.float32
-    RightDownX: np.float32
-    RightDownY: np.float32
+    top_left_x: np.float32
+    top_left_y: np.float32
+    bottom_right_x: np.float32
+    bottom_right_y: np.float32
 
 
 class FrameForVideoReceiver:
-    def __init__(self, logger: logging.Logger, input_frame: np.ndarray, vk_io: VertexKeyIO):
+    def __init__(self, logger: logging.Logger, input_frame: np.ndarray, payload: Payload):
         self.logger = logger
-        self._frame_idx = vk_io['frame_idx']
+        self._frame_idx = payload.frame_index
         self._input: np.ndarray = input_frame
         self._output: np.ndarray | None = None
         self._bboxes: list[BBox] = []
 
-        self.set_bboxes(vk_io)
+        self.set_bboxes(payload)
 
     @property
     def output(self) -> np.ndarray | None:
         return self._output
 
-    def set_bboxes(self, vk_io: VertexKeyIO) -> None:
+    def set_bboxes(self, payload: Payload) -> None:
         self._bboxes = [
             BBox(
-                confidence=vk_io[f'box_{i}_confidence'],
-                class_id=vk_io[f'box_{i}_class_id'],
-                LeftUpX=vk_io[f'box_{i}_LeftUpX'],
-                LeftUpY=vk_io[f'box_{i}_LeftUpY'],
-                RightDownX=vk_io[f'box_{i}_RightDownX'],
-                RightDownY=vk_io[f'box_{i}_RightDownY'],
+                confidence=payload.bounding_boxes[i].confidence,
+                class_id=payload.bounding_boxes[i].class_id,
+                top_left_x=payload.bounding_boxes[i].top_left_x,
+                top_left_y=payload.bounding_boxes[i].top_left_y,
+                bottom_right_x=payload.bounding_boxes[i].bottom_right_x,
+                bottom_right_y=payload.bounding_boxes[i].bottom_right_y,
             )
-            for i in range(vk_io['box_len'])
+            for i in range(len(payload.bounding_boxes))
         ]
 
     def log_input(self) -> None:
@@ -70,8 +68,8 @@ class FrameForVideoReceiver:
             )
             self.logger.info(
                 f'frame_index: {self._frame_idx}, bbox num: {i}-line2, '
-                f'LeftUp: ({bbox.LeftUpX}, {bbox.LeftUpY}), '
-                f'RightDown: ({bbox.RightDownX}, {bbox.RightDownY})'
+                f'top_left: ({bbox.top_left_x}, {bbox.top_left_y}), '
+                f'bottom_right: ({bbox.bottom_right_x}, {bbox.bottom_right_y})'
             )
 
     def bboxes_fusion(self):
@@ -89,22 +87,22 @@ class FrameForVideoReceiver:
         thickness = max(1, int(min(h, w) / 200))
         for _, bbox in enumerate(self._bboxes):
             # Allow tiny epsilon because normalized outputs can slightly under/overflow [0,1].
-            vals = [bbox.LeftUpX, bbox.LeftUpY, bbox.RightDownX, bbox.RightDownY]
+            vals = [bbox.top_left_x, bbox.top_left_y, bbox.bottom_right_x, bbox.bottom_right_y]
             eps = 1e-3
             is_normalized = all(-eps <= float(v) <= 1.0 + eps for v in vals)
 
             if is_normalized:
                 # Clip normalized values into [0,1] then scale to pixels
-                lu_x = round(float(np.clip(bbox.LeftUpX, 0.0, 1.0)) * w)
-                lu_y = round(float(np.clip(bbox.LeftUpY, 0.0, 1.0)) * h)
-                rd_x = round(float(np.clip(bbox.RightDownX, 0.0, 1.0)) * w)
-                rd_y = round(float(np.clip(bbox.RightDownY, 0.0, 1.0)) * h)
+                lu_x = round(float(np.clip(bbox.top_left_x, 0.0, 1.0)) * w)
+                lu_y = round(float(np.clip(bbox.top_left_y, 0.0, 1.0)) * h)
+                rd_x = round(float(np.clip(bbox.bottom_right_x, 0.0, 1.0)) * w)
+                rd_y = round(float(np.clip(bbox.bottom_right_y, 0.0, 1.0)) * h)
             else:
                 # Treat as pixel coordinates
-                lu_x = round(float(bbox.LeftUpX))
-                lu_y = round(float(bbox.LeftUpY))
-                rd_x = round(float(bbox.RightDownX))
-                rd_y = round(float(bbox.RightDownY))
+                lu_x = round(float(bbox.top_left_x))
+                lu_y = round(float(bbox.top_left_y))
+                rd_x = round(float(bbox.bottom_right_x))
+                rd_y = round(float(bbox.bottom_right_y))
 
             # Final clipping to image bounds
             lu_x = max(0, min(w - 1, int(lu_x)))
@@ -140,8 +138,6 @@ class AsyncSink(Sinker):
     def __init__(
         self, frame_capture_func: Callable[[int, np.ndarray, np.ndarray], None] | None = None
     ):
-        load_dotenv(str(Path(__file__).parent / '../../app.env'))
-
         # setup logger
         self.logger = setup_logging('console_logger')
         set_logger_log_level(self.logger)
@@ -155,15 +151,29 @@ class AsyncSink(Sinker):
         self.jpeg_quality = int(os.getenv('JPEG_QUALITY', '90'))
         self.receiver_url = os.getenv('RECEIVER_URL')
         if self.receiver_url is None:
-            self.logger.error('environment variable RECEIVER_URL not set')
-            sys.exit(1)
+            # Quick start mode: dump received frames to a video file
+            self.logger.info('Quick start mode')
+            self.width = int(os.getenv('FR_OUTPUT_WIDTH'))
+            self.height = int(os.getenv('FR_OUTPUT_HEIGHT'))
+
+            fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+            fps = 15.0
+            timestamp = int(time.time())
+            video_path = os.path.join(log_path, f'sink_{timestamp}.mp4')
+            self.video_writer = cv2.VideoWriter(video_path, fourcc, fps, (self.width, self.height))
+            self.logger.info(f'Video file created: {video_path}')
+
+    # Define a shutdown callback
+    def shutdown_callback(self, _loop):
+        self.logger.info('Shutting down')
+        if self.receiver_url is not None:
+            self.video_writer.release()
+            self.logger.info('Video file released')
 
     def send_frame_to_video_receiver(self, frame_bgr: np.ndarray, frame_idx: int) -> None:
-        frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
-
         # buf is Raw byte data (after JPEG compression) stored in a One-dim NumPy array
         ok, buf = cv2.imencode(
-            '.jpg', frame_rgb, [int(cv2.IMWRITE_JPEG_QUALITY), self.jpeg_quality]
+            '.jpg', frame_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), self.jpeg_quality]
         )
         if not ok:
             self.logger.error('encode failed')
@@ -184,28 +194,35 @@ class AsyncSink(Sinker):
     async def handler(self, datums: AsyncIterable[Datum]) -> Responses:
         responses = Responses()
         async for msg in datums:
-            resized_frame = cv2.imdecode(np.frombuffer(msg.value, np.uint8), cv2.IMREAD_UNCHANGED)
-            vk_io = VertexKeyIO(msg.keys)
+            payload = msgspec.msgpack.decode(msg.value, type=Payload)
+            input_frame_bgr = cv2.imdecode(
+                np.frombuffer(payload.compressed_frame, np.uint8), cv2.IMREAD_COLOR
+            )
+            payload.compressed_frame = None  # in order not to log bytes
 
-            self.logger.info(f'{vk_io.items()}')
+            self.logger.info(f'{payload}')
 
-            send_frame = FrameForVideoReceiver(self.logger, resized_frame, vk_io)
+            send_frame = FrameForVideoReceiver(self.logger, input_frame_bgr, payload)
             send_frame.log_input()
 
             send_frame.bboxes_fusion()
 
             # Executed only during testing.
             if self.frame_capture_func is not None:
-                self.frame_capture_func(vk_io['frame_idx'], resized_frame, send_frame.output)
+                self.frame_capture_func(payload.frame_index, input_frame_bgr, send_frame.output)
 
-            resp = self.send_frame_to_video_receiver(send_frame.output, vk_io['frame_idx'])
-
-            if resp.status_code == 200:
-                count = resp.json()['count']
-                self.logger.debug(f'frame count: {count}')
+            if self.receiver_url is None:
+                # Dump frames to the video file
+                self.video_writer.write(send_frame.output)
             else:
-                self.logger.error('Request failed: %s', resp.status_code)
-                sys.exit(1)
+                resp = self.send_frame_to_video_receiver(send_frame.output, payload.frame_index)
+
+                if resp.status_code == 200:
+                    count = resp.json()['count']
+                    self.logger.debug(f'frame count: {count}')
+                else:
+                    self.logger.error('Request failed: %s', resp.status_code)
+                    sys.exit(1)
 
             responses.append(Response.as_success(msg.id))
         # if we are not able to write to sink and if we have a fallback sink configured
@@ -215,5 +232,5 @@ class AsyncSink(Sinker):
 
 if __name__ == '__main__':
     sink_handler = AsyncSink()
-    grpc_server = SinkAsyncServer(sink_handler)
+    grpc_server = SinkAsyncServer(sink_handler, shutdown_callback=sink_handler.shutdown_callback)
     grpc_server.start()

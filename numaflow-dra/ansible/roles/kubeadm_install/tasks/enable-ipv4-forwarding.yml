@@ -1,0 +1,19 @@
+- name: Enable net.ipv4.ip_forward in sysctl
+  become: true
+  ansible.builtin.copy:
+    src: sysctl-90-k8s.conf
+    dest: /etc/sysctl.d/90-k8s.conf
+    mode: "0644"
+  notify:
+    - Apply sysctl parameters without reboot
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Check if net.ipv4.ip_forward is enabled
+  ansible.builtin.command: sysctl -n net.ipv4.ip_forward
+  register: kubeadm_install_guardian_net_ipv4_ip_forward
+  changed_when: false
+  failed_when: >-
+    kubeadm_install_guardian_net_ipv4_ip_forward.rc >= 1
+    or kubeadm_install_guardian_net_ipv4_ip_forward.stdout != "1"

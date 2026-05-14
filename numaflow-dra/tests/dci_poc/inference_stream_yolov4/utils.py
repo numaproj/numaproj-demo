@@ -1,10 +1,10 @@
-import pickle
-
 import cv2
+import msgspec
+import numpy as np
 from pynumaflow.proto.mapper import map_pb2
 from tests.testing_utils import get_time_args
 
-from lib.vertex_key_io import VertexKeyIO
+from lib.message_spec import Payload
 
 
 def request_generator(count, session=1, handshake=True):
@@ -17,18 +17,21 @@ def request_generator(count, session=1, handshake=True):
 
     for _j in range(session):
         for i in range(count):
-            frame = cv2.imread('../../ml-models/pytorch-YOLOv4/data/dog.jpg')
-            vk_io = VertexKeyIO()
-            vk_io.add('frame_idx', read_idx)
-            vk_io.add('org_height', frame.shape[0])
-            vk_io.add('org_width', frame.shape[1])
+            with open('../../ml-models/pytorch-YOLOv4/data/dog.jpg', 'rb') as f:
+                encoded_frame = f.read()
+            frame = cv2.imdecode(np.frombuffer(encoded_frame, np.uint8), cv2.IMREAD_UNCHANGED)
+            payload = Payload(
+                frame_index=read_idx,
+                original_height=frame.shape[0],
+                original_width=frame.shape[1],
+                compressed_frame=encoded_frame,
+            )
 
             req = map_pb2.MapRequest(
                 request=map_pb2.MapRequest.Request(
-                    value=pickle.dumps(frame),
+                    value=msgspec.msgpack.encode(payload),
                     event_time=event_time_timestamp,
                     watermark=watermark_timestamp,
-                    keys=vk_io.keys_list,
                 ),
                 id='test-id-' + str(i),
             )

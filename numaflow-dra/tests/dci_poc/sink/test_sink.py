@@ -35,7 +35,11 @@ def sink_servicer_impl(capture_func) -> sink_pb2_grpc.SinkServicer:
     return udf
 
 
-def test_sink(capture_func, sink_stub) -> None:
+def test_sink(
+    load_app_env_template,  # noqa: ARG001
+    capture_func,
+    sink_stub,
+) -> None:
     generator_response = None
     try:
         generator_response = sink_stub.SinkFn(

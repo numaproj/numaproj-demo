@@ -1,0 +1,24 @@
+- name: Copy nvidia-cuda-mps-control.service
+  become: true
+  ansible.builtin.copy:
+    src: nvidia-cuda-mps-control.service
+    dest: /etc/systemd/system/nvidia-cuda-mps-control.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy nvidia-cuda-mps-control.sh
+  become: true
+  ansible.builtin.copy:
+    src: nvidia-cuda-mps-control.sh
+    dest: /root/nvidia-cuda-mps-control.sh
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Enable nvidia-cuda-mps-control and ensure it is started
+  become: true
+  ansible.builtin.systemd:
+    name: nvidia-cuda-mps-control
+    enabled: true
+    state: started

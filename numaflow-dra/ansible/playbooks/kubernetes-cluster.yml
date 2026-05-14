@@ -1,0 +1,24 @@
+---
+- name: Setup prerequisite for kubeadm
+  hosts: all
+  roles:
+    - kubeadm_prerequisite
+
+- name: Install software for kubernetes cluster
+  hosts: all
+  roles:
+    - kubeadm_install
+
+- name: Build kubernetes cluster
+  hosts: all
+  roles:
+    - kubeadm_init_join
+
+# In officail procedure[1], Installing a Pod network add-on (CNI Plugin) precede joining k8s worker.
+# However, to use the token entirely within a single role, joining k8s worker is integrated into initing k8s master.
+#
+# [1] https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/
+- name: Install pod network add-on
+  hosts: k8s_master
+  roles:
+    - calico

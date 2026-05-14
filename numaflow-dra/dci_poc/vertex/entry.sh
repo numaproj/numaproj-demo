@@ -2,11 +2,11 @@
 set -eux
 
 if [ "$SCRIPT" = "source" ]; then
-    python source.py
-elif [ "$SCRIPT" = "fr-stream" ]; then
-    python filter_resize_stream.py
+    exec python source.py
+elif [ "$SCRIPT" = "reduce" ]; then
+    exec python reduce.py
 elif [ "$SCRIPT" = "sink" ]; then
-    python sink.py
+    exec python sink.py
 else
     echo "Error: Unknown SCRIPT '$SCRIPT'"
     exit 1

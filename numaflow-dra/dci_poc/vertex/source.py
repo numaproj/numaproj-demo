@@ -4,19 +4,19 @@ import sys
 import time
 import uuid
 from datetime import datetime
-from pathlib import Path
 from queue import Empty, Full, Queue
 from threading import Event, Thread
 
 import cv2
+import msgspec
 import numpy as np
-from dotenv import load_dotenv
 from pynumaflow import setup_logging
 from pynumaflow._constants import STREAM_EOF
 from pynumaflow.shared.asynciter import NonBlockingIterator
 from pynumaflow.sourcer import (
     AckRequest,
     Message,
+    NackRequest,
     Offset,
     PartitionsResponse,
     PendingResponse,
@@ -30,9 +30,7 @@ from lib.log import (
     add_new_filehandler,
     set_logger_log_level,
 )
-from lib.vertex_key_io import (
-    VertexKeyIO,
-)
+from lib.message_spec import Payload
 
 
 class FrameForInput:
@@ -74,7 +72,6 @@ class AsyncVideoReader(Thread):
         self.stopped = Event()
 
         # setup ENV
-        load_dotenv(str(Path(__file__).parent / '../../app.env'))
         self.input_type = os.getenv('SOURCE_INPUT_TYPE')
         self.jpeg_quality = int(os.getenv('JPEG_QUALITY', '90'))
         if self.input_type is None:
@@ -141,9 +138,9 @@ class AsyncVideoReader(Thread):
                 else:
                     self.read_false_count = 0
 
-                self.logger.info('Read rightly')
-                compressed_frame = self._compress_frame(raw_frame)
-                self._put_latest(FrameForInput(raw_frame, compressed_frame))
+                    self.logger.info('Read rightly')
+                    compressed_frame = self._compress_frame(raw_frame)
+                    self._put_latest(FrameForInput(raw_frame, compressed_frame))
         finally:
             self.logger.info('_run_stream close')
             self._cap_release()
@@ -238,8 +235,6 @@ class AsyncSourceSendFrame(Sourcer):
     """AsyncSource is a class for User Defined Source implementation."""
 
     def __init__(self):
-        load_dotenv(str(Path(__file__).parent / '../../app.env'))
-
         # setup logger
         self.logger = setup_logging('console_logger')
         log_path = os.getenv('LOG_PATH')
@@ -271,7 +266,6 @@ class AsyncSourceSendFrame(Sourcer):
         for _x in range(datum.num_records):
             headers = {'x-txn-id': str(uuid.uuid4())}
 
-            vk_io = VertexKeyIO()
             frame = self.async_video_reader.get_next_frame()
             if frame is None:
                 self.logger.info('A None frame was passed. src_file has ended')
@@ -281,20 +275,22 @@ class AsyncSourceSendFrame(Sourcer):
 
             # self._debug_frame_info(frame.as_raw_frame())
 
-            vk_io.add('frame_idx', self.read_idx)
-            vk_io.add('org_height', frame.height())
-            vk_io.add('org_width', frame.width())
+            payload = Payload(
+                frame_index=self.read_idx,
+                original_height=frame.height(),
+                original_width=frame.width(),
+                compressed_frame=frame.as_compressed_frame(),
+            )
 
             await output.put(
                 Message(
-                    payload=frame.as_compressed_frame(),
+                    payload=msgspec.msgpack.encode(payload),
                     offset=Offset.offset_with_default_partition_id(str(self.read_idx).encode()),
                     event_time=datetime.now(),
-                    keys=vk_io.keys_list,
                     headers=headers,
                 ),
             )
-            self.to_ack_set.add(str(self.read_idx))
+            self.to_ack_set.add(self.read_idx)
             self.read_idx += 1
 
     async def ack_handler(self, ack_request: AckRequest):
@@ -302,7 +298,18 @@ class AsyncSourceSendFrame(Sourcer):
         from the to_ack_set
         """
         for req in ack_request.offsets:
-            self.to_ack_set.remove(str(req.offset, 'utf-8'))
+            offset = int(req.offset)
+            self.to_ack_set.remove(offset)
+
+    async def nack_handler(self, ack_request: NackRequest):
+        """
+        Do not resend nacked frames because they are obsolete in a real-time video streaming.
+        """
+
+        for req in ack_request.offsets:
+            offset = int(req.offset)
+            self.to_ack_set.remove(offset)
+        self.logger.info('Negatively acknowledged offsets: %s', self.nacked)
 
     async def pending_handler(self) -> PendingResponse:
         """The simple source always returns zero to indicate there is no pending record."""

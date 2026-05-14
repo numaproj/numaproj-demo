@@ -1,0 +1,4 @@
+- name: Setup Grafana dashboard for demo
+  hosts: k8s_master
+  roles:
+    - demo_grafana_dashboard

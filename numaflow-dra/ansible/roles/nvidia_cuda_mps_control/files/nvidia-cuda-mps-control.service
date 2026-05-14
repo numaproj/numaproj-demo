@@ -1,0 +1,13 @@
+[Unit]
+Description=NVIDIA CUDA multi-process service control
+Documentation=man:nvidia-cuda-mps-control(1)
+Documentation=https://docs.nvidia.com/deploy/mps/
+
+[Service]
+Type=forking
+User=root
+ExecStart=/root/nvidia-cuda-mps-control.sh start
+ExecStop=/root/nvidia-cuda-mps-control.sh stop
+
+[Install]
+WantedBy=multi-user.target
