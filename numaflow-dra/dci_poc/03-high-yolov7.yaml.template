@@ -1,11 +1,12 @@
 apiVersion: numaflow.numaproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: dci-poc-pipeline1
+  name: high-yolov7
 spec:
   vertices:
     - name: in
       scale:
+        min: 1
         max: 1
       source:
         udsource:
@@ -19,23 +20,18 @@ spec:
               - configMapRef:
                   name: app-env-cm
             volumeMounts:
-              - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
-                name: log-volume
               - mountPath: /mnt/whitebox
                 name: whitebox-volume
       limits:
         readBatchSize: 1
       volumes:
-        - name: log-volume
-          hostPath:
-            path: /var/tmp/logs/numaflow-dra/dci_poc
-            type: DirectoryOrCreate
         - name: whitebox-volume
           hostPath:
             path: /mnt/whitebox
             type: DirectoryOrCreate
     - name: filter-resize
       scale:
+        min: 1
         max: 1
       udf:
         container:
@@ -47,24 +43,17 @@ spec:
           envFrom:
             - configMapRef:
                 name: app-env-cm
-          volumeMounts:
-            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
-              name: log-volume
           resources:
             claims:
               - name: gpu
       resourceClaims:
         - name: gpu
-          resourceClaimName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
+          resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
       limits:
         readBatchSize: 1
-      volumes:
-        - name: log-volume
-          hostPath:
-            path: /var/tmp/logs/numaflow-dra/dci_poc
-            type: DirectoryOrCreate
     - name: filter-resize2
       scale:
+        min: 1
         max: 1
       udf:
         container:
@@ -76,54 +65,40 @@ spec:
           envFrom:
             - configMapRef:
                 name: fr2-env-cm
-          volumeMounts:
-            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc_fr2
-              name: log-volume
           resources:
             claims:
               - name: gpu
       resourceClaims:
         - name: gpu
-          resourceClaimName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
+          resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
       limits:
         readBatchSize: 1
-      volumes:
-        - name: log-volume
-          hostPath:
-            path: /var/tmp/logs/numaflow-dra/dci_poc_fr2
-            type: DirectoryOrCreate
     - name: inference
       scale:
+        min: 1
         max: 1
       udf:
         container:
-          image: $REGISTRY_URL/numaflow/dci-poc-gpu-yolov4:stable
+          image: $REGISTRY_URL/numaflow/dci-poc-gpu-yolov7:stable
           imagePullPolicy: Always
           env:
             - name: SCRIPT
-              value: inf-stream-yolov4
+              value: inf-stream-yolov7
           envFrom:
             - configMapRef:
                 name: app-env-cm
-          volumeMounts:
-            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
-              name: log-volume
           resources:
             claims:
               - name: gpu
       resourceClaims:
         - name: gpu
-          resourceClaimName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
+          resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
       limits:
         readBatchSize: 1
-      volumes:
-        - name: log-volume
-          hostPath:
-            path: /var/tmp/logs/numaflow-dra/dci_poc
-            type: DirectoryOrCreate
     - name: stream-join
       partitions: 1
       scale:
+        min: 1
         max: 1
       udf:
         container:
@@ -135,25 +110,20 @@ spec:
           envFrom:
             - configMapRef:
                 name: app-env-cm
-          volumeMounts:
-            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
-              name: log-volume
         groupBy:
           window:
             accumulator:
-              timeout: 1m
-          keyed: false
+              timeout: 5s
+          keyed: true
           storage:
-            no_store: {}
+            persistentVolumeClaim:
+              volumeSize: 3Gi
+              storageClassName: local-storage
       limits:
         readBatchSize: 1
-      volumes:
-        - name: log-volume
-          hostPath:
-            path: /var/tmp/logs/numaflow-dra/dci_poc
-            type: DirectoryOrCreate
     - name: out
       scale:
+        min: 1
         max: 1
       sink:
         udsink:

@@ -5,7 +5,7 @@
 
 - name: Download Calico Manifest as temporary file
   ansible.builtin.get_url:
-    url: "https://raw.githubusercontent.com/projectcalico/calico/{{ calico.calico_ver }}/manifests/calico.yaml"
+    url: "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico.calico_ver }}/manifests/calico.yaml"
     dest: "{{ calico_tempfile.path }}"
     mode: "0644"
   changed_when: false

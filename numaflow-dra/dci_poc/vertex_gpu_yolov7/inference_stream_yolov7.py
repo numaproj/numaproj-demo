@@ -7,7 +7,6 @@ import cv2
 import msgspec
 import numpy as np
 import torch
-from pynumaflow import setup_logging
 from pynumaflow.mapstreamer import Datum, MapStreamAsyncServer, MapStreamer, Message
 
 # this .py file need Official-YOLOv7(https://github.com/WongKinYiu/yolov7))
@@ -17,22 +16,23 @@ from models.experimental import attempt_load
 from utils.datasets import letterbox
 from utils.general import check_img_size, non_max_suppression, scale_coords
 
-from lib.log import (
-    add_new_filehandler,
-    set_logger_log_level,
-)
+from lib.log import setup_logging
 from lib.message_spec import BoundingBox, Payload
+
+_logger = None
+
+
+def setup_logger():
+    global _logger
+    if _logger is None:
+        _logger = setup_logging(__name__)
 
 
 class Infer(MapStreamer):
     def __init__(self):
-        # setup logger
-        self.logger = setup_logging('console_logger')
-        log_path = os.getenv('LOG_PATH')
-        log_file = os.path.join(log_path, 'inference.log')
-        add_new_filehandler(self.logger, log_file)
-        set_logger_log_level(self.logger)
-        self.logger.info('Infer init')
+        setup_logger()
+        self.keep_secondary_frame = int(os.getenv('KEEP_SECONDARY_FRAME', '0')) != 0
+        _logger.info('Inference (YOLOv7) initialized')
 
         self.check_gpu_info()
 
@@ -44,14 +44,14 @@ class Infer(MapStreamer):
         )
 
     def check_gpu_info(self):
-        self.logger.info(f'torch cuda version: {torch.version.cuda}')
+        _logger.info(f'torch cuda version: {torch.version.cuda}')
         if torch.cuda.is_available():
-            self.logger.info('Available GPU is following')
+            _logger.info('Available GPU(s):')
             for i in range(torch.cuda.device_count()):
                 gpu = torch.cuda.get_device_properties(i)
-                self.logger.info(f'GPU {i}: {gpu.name}, {gpu.total_memory / 1e9} GB')
+                _logger.info(f'GPU {i}: {gpu.name}, {gpu.total_memory / 1e9} GB')
         else:
-            self.logger.info('Available GPU is nothing')
+            _logger.info('No available GPU')
             sys.exit(1)
 
     def setup_yolov7_model(
@@ -70,7 +70,7 @@ class Infer(MapStreamer):
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
             # 2. load model
-            self.logger.info(f'weight_path: {weight_path}')
+            _logger.info(f'weight_path: {weight_path}')
             self.model = attempt_load(str(weight_path), map_location=self.device)  # load FP32 model
 
             # 3. switch model to inference(eval) mode
@@ -81,9 +81,9 @@ class Infer(MapStreamer):
                 self.model.module.names if hasattr(self.model, 'module') else self.model.names
             )
         except Exception as e:
-            self.logger.error(f'Encountered exception: {e} in setup Yolov7 model', exc_info=True)
+            _logger.error(f'Encountered exception: {e} in setup YOLOv7 model', exc_info=True)
 
-        self.logger.info('Setup Yolov7 model completed')
+        _logger.info('Setup YOLOv7 model completed')
 
     def preprocess_image(self, img: np.ndarray) -> torch.Tensor:
         """
@@ -133,7 +133,7 @@ class Infer(MapStreamer):
             ## conf_thres: under limit of confidence threshold.
             ## iou_thres : threshold of intersection over Union
             pred = non_max_suppression(pred, conf_thres=0.25, iou_thres=0.45)
-            self.logger.debug(f'prediction: {pred}')
+            _logger.debug(f'Prediction: {pred}')
             # pred is "raw prediction", [N, 85]. In the case where the dataset is COCO80
             # N: Number of candidate boxes generated during inference
             # 85: [cx, cy, w, h, confidence score, cls1, ..., cls80]
@@ -161,22 +161,22 @@ class Infer(MapStreamer):
                             'class': self.names[int(cls)],
                         }
                     )
-            self.logger.info(f'results: {results}')
+            _logger.debug(f'Inference results: {results}')
 
             return results
         except Exception as e:
-            self.logger.error(f'Encountered exception: {e} in infer()', exc_info=True)
+            _logger.error(f'Encountered exception: {e} in infer()', exc_info=True)
 
     def _decompress_frame_np(self, value: bytes) -> np.ndarray:
         if not value:
-            self.logger.error('Empty payload received')
+            _logger.error('Empty payload received')
             return None
 
         arr = np.frombuffer(value, np.uint8)
         img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
 
         if img is None:
-            self.logger.error(f'cv2.imdecode failed: buffer_len={len(value)}')
+            _logger.error(f'cv2.imdecode failed: buffer_len={len(value)}')
 
         return img
 
@@ -194,23 +194,15 @@ class Infer(MapStreamer):
 
         # inference data on GPU
         frame_idx = payload_in.frame_index
-        self.logger.info(f'frame_index: {frame_idx}')
-        self.logger.debug(f'resized_frame_bgr: {resized_frame_bgr}')
+        _logger.debug(f'Frame index: {frame_idx}')
 
         input_tensor = self.preprocess_image(resized_frame_bgr)
         res = self.infer(input_tensor, resized_frame_bgr)
 
-        # The Objects included in the dataset are not being detected
-        # bboxes is [[]]
-        if len(res) == 1 and isinstance(res[0], list) and len(res[0]) == 0:
-            yield Message.to_drop()
-            return
+        payload_out = Payload(frame_index=payload_in.frame_index)
 
-        payload_out = Payload(
-            frame_index=payload_in.frame_index,
-            original_height=payload_in.original_height,
-            original_width=payload_in.original_width,
-        )
+        if self.keep_secondary_frame:
+            payload_out.compressed_frame = payload_in.secondary_frame
 
         for r in res:
             payload_out.bounding_boxes.append(
@@ -223,16 +215,11 @@ class Infer(MapStreamer):
                     bottom_right_y=float(r['bbox'][3]) / float(height),
                 )
             )
-        self.logger.debug(f'{payload_out}')
 
-        # str_size = 0
-        # for s in vk_io.keys_list:
-        #    self.logger.debug(f'{s}')
-        #    str_size += sys.getsizeof(s)
-        # self.logger.debug(f'{sys.getsizeof(pickle.dumps(resized_frame))}')
-        # self.logger.debug(f'{str_size}')
-
-        yield Message(value=msgspec.msgpack.encode(payload_out))
+        yield Message(
+            keys=datum.keys,
+            value=msgspec.msgpack.encode(payload_out),
+        )
 
 
 if __name__ == '__main__':

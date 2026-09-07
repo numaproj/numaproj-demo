@@ -1,0 +1,183 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: day-and-night
+spec:
+  vertices:
+    - name: in
+      scale:
+        min: 1
+        max: 1
+      source:
+        udsource:
+          container:
+            image: $REGISTRY_URL/numaflow/dci-poc:stable
+            imagePullPolicy: Always
+            env:
+              - name: SCRIPT
+                value: source
+            envFrom:
+              - configMapRef:
+                  name: app-env-cm
+            volumeMounts:
+              - mountPath: /mnt/whitebox
+                name: whitebox-volume
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: whitebox-volume
+          hostPath:
+            path: /mnt/whitebox
+            type: DirectoryOrCreate
+    - name: filter-resize2
+      scale:
+        min: 1
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc-gpu-fr:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: fr-stream
+          envFrom:
+            - configMapRef:
+                name: fr2-env-cm
+          resources:
+            claims:
+              - name: gpu
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
+      limits:
+        readBatchSize: 1
+    - name: brightness
+      scale:
+        min: 1
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: brightness
+          envFrom:
+            - configMapRef:
+                name: app-env-cm
+      limits:
+        readBatchSize: 1
+    - name: filter-resize
+      scale:
+        min: 1
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc-gpu-fr:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: fr-stream
+          envFrom:
+            - configMapRef:
+                name: app-env-cm
+          resources:
+            claims:
+              - name: gpu
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
+      limits:
+        readBatchSize: 1
+    - name: inference
+      scale:
+        min: 1
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc-gpu-yolov7:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: inf-stream-yolov7
+          envFrom:
+            - configMapRef:
+                name: app-env-cm
+          resources:
+            claims:
+              - name: gpu
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
+      limits:
+        readBatchSize: 1
+    - name: motion
+      scale:
+        min: 1
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: motion
+          envFrom:
+            - configMapRef:
+                name: app-env-cm
+      limits:
+        readBatchSize: 1
+    - name: out
+      scale:
+        min: 1
+        max: 1
+      sink:
+        udsink:
+          container:
+            image: $REGISTRY_URL/numaflow/dci-poc:stable
+            imagePullPolicy: Always
+            volumeMounts:
+              - name: log-volume
+                mountPath: /var/tmp/logs/numaflow-dra/dci_poc
+            env:
+              - name: SCRIPT
+                value: sink
+            envFrom:
+              - configMapRef:
+                  name: fr2-env-cm
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/tmp/logs/numaflow-dra/dci_poc_fr2
+            type: DirectoryOrCreate
+  edges:
+    - from: in
+      to: filter-resize2
+    - from: filter-resize2
+      to: brightness
+
+    # Bright frames
+    - from: brightness
+      to: filter-resize
+      conditions:
+        tags:
+          operator: or
+          values:
+            - bright
+    - from: filter-resize
+      to: inference
+    - from: inference
+      to: out
+
+    # Dark frames
+    - from: brightness
+      to: motion
+      conditions:
+        tags:
+          operator: or
+          values:
+            - dark
+    - from: motion
+      to: out

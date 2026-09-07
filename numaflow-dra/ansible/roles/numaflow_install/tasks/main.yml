@@ -1,11 +1,14 @@
 - name: Install Numaflow
+  when: inventory_hostname in groups.k8s_master
   ansible.builtin.import_tasks: install_numaflow.yml
 
 - name: Deploy local-static-provisioner
+  when: inventory_hostname in groups.k8s_master
   ansible.builtin.import_tasks: deploy_local_static_provisioner.yml
 
 - name: Deploy Persistent Volume
   ansible.builtin.import_tasks: deploy_pv.yml
 
 - name: Deploy ISBSVC
+  when: inventory_hostname in groups.k8s_master
   ansible.builtin.import_tasks: deploy_isbsvc.yml

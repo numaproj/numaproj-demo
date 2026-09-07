@@ -1,11 +1,12 @@
 apiVersion: numaflow.numaproj.io/v1alpha1
 kind: Pipeline
 metadata:
-  name: dci-poc-pipeline3
+  name: high-yolov4-map-only
 spec:
   vertices:
     - name: in
       scale:
+        min: 1
         max: 1
       source:
         udsource:
@@ -19,23 +20,18 @@ spec:
               - configMapRef:
                   name: app-env-cm
             volumeMounts:
-              - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
-                name: log-volume
               - mountPath: /mnt/whitebox
                 name: whitebox-volume
       limits:
         readBatchSize: 1
       volumes:
-        - name: log-volume
-          hostPath:
-            path: /var/tmp/logs/numaflow-dra/dci_poc
-            type: DirectoryOrCreate
         - name: whitebox-volume
           hostPath:
             path: /mnt/whitebox
             type: DirectoryOrCreate
     - name: filter-resize
       scale:
+        min: 1
         max: 1
       udf:
         container:
@@ -47,9 +43,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: app-env-cm
-          volumeMounts:
-            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
-              name: log-volume
           resources:
             claims:
               - name: gpu
@@ -58,13 +51,9 @@ spec:
           resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
       limits:
         readBatchSize: 1
-      volumes:
-        - name: log-volume
-          hostPath:
-            path: /var/tmp/logs/numaflow-dra/dci_poc
-            type: DirectoryOrCreate
     - name: filter-resize2
       scale:
+        min: 1
         max: 1
       udf:
         container:
@@ -76,9 +65,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: fr2-env-cm
-          volumeMounts:
-            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc_fr2
-              name: log-volume
           resources:
             claims:
               - name: gpu
@@ -87,27 +73,20 @@ spec:
           resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
       limits:
         readBatchSize: 1
-      volumes:
-        - name: log-volume
-          hostPath:
-            path: /var/tmp/logs/numaflow-dra/dci_poc_fr2
-            type: DirectoryOrCreate
     - name: inference
       scale:
+        min: 1
         max: 1
       udf:
         container:
-          image: $REGISTRY_URL/numaflow/dci-poc-gpu-yolov7:stable
+          image: $REGISTRY_URL/numaflow/dci-poc-gpu-yolov4:stable
           imagePullPolicy: Always
           env:
             - name: SCRIPT
-              value: inf-stream-yolov7
+              value: inf-stream-yolov4
           envFrom:
             - configMapRef:
                 name: app-env-cm
-          volumeMounts:
-            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
-              name: log-volume
           resources:
             claims:
               - name: gpu
@@ -116,44 +95,9 @@ spec:
           resourceClaimName: numaflow-dra-a100 # numaflow-dra/config_yaml/dra-a100.yaml
       limits:
         readBatchSize: 1
-      volumes:
-        - name: log-volume
-          hostPath:
-            path: /var/tmp/logs/numaflow-dra/dci_poc
-            type: DirectoryOrCreate
-    - name: stream-join
-      partitions: 1
-      scale:
-        max: 1
-      udf:
-        container:
-          image: $REGISTRY_URL/numaflow/dci-poc:stable
-          imagePullPolicy: Always
-          env:
-            - name: SCRIPT
-              value: reduce
-          envFrom:
-            - configMapRef:
-                name: app-env-cm
-          volumeMounts:
-            - mountPath: /var/tmp/logs/numaflow-dra/dci_poc
-              name: log-volume
-        groupBy:
-          window:
-            accumulator:
-              timeout: 1m
-          keyed: false
-          storage:
-            no_store: {}
-      limits:
-        readBatchSize: 1
-      volumes:
-        - name: log-volume
-          hostPath:
-            path: /var/tmp/logs/numaflow-dra/dci_poc
-            type: DirectoryOrCreate
     - name: out
       scale:
+        min: 1
         max: 1
       sink:
         udsink:
@@ -178,14 +122,11 @@ spec:
             type: DirectoryOrCreate
   edges:
     - from: in
-      to: filter-resize
-    - from: in
       to: filter-resize2
+    # It is intended that we go to filter-resize2 first, then filter-resize.
+    - from: filter-resize2
+      to: filter-resize
     - from: filter-resize
       to: inference
     - from: inference
-      to: stream-join
-    - from: filter-resize2
-      to: stream-join
-    - from: stream-join
       to: out

@@ -772,3 +772,8 @@ paths:
       ffmpeg -stream_loop -1 -re -i poc_movie_test.mp4
       -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
     runOnDemandRestart: true
+  usbcam_4k_15fps:
+    runOnDemand: >-
+      ffmpeg -f v4l2 -input_format mjpeg -video_size 3840x2160 -framerate 30
+      -i /dev/video0 -r 15 -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnDemandRestart: true

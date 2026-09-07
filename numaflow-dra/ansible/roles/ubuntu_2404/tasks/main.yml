@@ -6,6 +6,9 @@
 #   See the sources.list(5) manual page for details.
 #
 - name: Have /etc/apt/sources.list empty
+  when:
+    - ansible_facts["distribution"] == "Ubuntu"
+    - ansible_facts["distribution_version"] == "24.04"
   become: true
   ansible.builtin.copy:
     src: etc-apt-sources.list

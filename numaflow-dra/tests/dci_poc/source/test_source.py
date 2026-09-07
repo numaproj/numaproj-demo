@@ -53,8 +53,8 @@ def test_source_under_file_src(
         height, width, _ = img.shape
 
         assert payload.frame_index == idx
-        assert payload.original_height == height
-        assert payload.original_width == width
+        assert payload.frame_height == height
+        assert payload.frame_width == width
 
         idx += 1
 
@@ -99,8 +99,8 @@ def test_source_under_stream_src(
         height, width, _ = img.shape
 
         assert payload.frame_index == idx
-        assert payload.original_height == height
-        assert payload.original_width == width
+        assert payload.frame_height == height
+        assert payload.frame_width == width
 
         idx += 1
 

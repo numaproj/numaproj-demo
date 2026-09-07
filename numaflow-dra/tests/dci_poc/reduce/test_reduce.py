@@ -28,13 +28,11 @@ async def test_reduce_join(
     # A frame from source
     payload_source = Payload(
         frame_index=1,
-        original_height=2160,
-        original_width=3840,
         compressed_frame=b'frame',
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_source),
             event_time=datetime.now(tz=UTC),
             watermark=watermark,
@@ -45,8 +43,6 @@ async def test_reduce_join(
     # A result from inference
     payload_inference = Payload(
         frame_index=1,
-        original_height=2160,
-        original_width=3840,
         bounding_boxes=[
             BoundingBox(
                 confidence=0.9,
@@ -60,7 +56,7 @@ async def test_reduce_join(
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_inference),
             event_time=datetime.now(tz=UTC),
             watermark=watermark,
@@ -79,8 +75,6 @@ async def test_reduce_join(
     # Metadata is merged
     payload_out = msgspec.msgpack.decode(output_item.value, type=Payload)
     assert payload_out.frame_index == 1
-    assert payload_out.original_height == 2160
-    assert payload_out.original_width == 3840
     assert len(payload_out.bounding_boxes) == 1
     assert payload_out.bounding_boxes[0].confidence == 0.9
     assert payload_out.bounding_boxes[0].class_id == 1
@@ -109,13 +103,11 @@ async def test_reduce_keep_frames(
     # First frame from source
     payload_source1 = Payload(
         frame_index=1,
-        original_height=2160,
-        original_width=3840,
         compressed_frame=b'frame1',
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_source1),
             event_time=datetime.now(tz=UTC),
             watermark=watermark1,
@@ -127,13 +119,11 @@ async def test_reduce_keep_frames(
     watermark2 = datetime.now(tz=UTC)
     payload_source2 = Payload(
         frame_index=2,
-        original_height=2160,
-        original_width=3840,
         compressed_frame=b'frame2',
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_source2),
             event_time=datetime.now(tz=UTC),
             watermark=watermark2,
@@ -144,8 +134,6 @@ async def test_reduce_keep_frames(
     # First result from inference
     payload_inference1 = Payload(
         frame_index=1,
-        original_height=2160,
-        original_width=3840,
         bounding_boxes=[
             BoundingBox(
                 confidence=0.9,
@@ -159,7 +147,7 @@ async def test_reduce_keep_frames(
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_inference1),
             event_time=datetime.now(tz=UTC),
             watermark=watermark1,
@@ -178,8 +166,6 @@ async def test_reduce_keep_frames(
     # Metadata is merged
     payload_out = msgspec.msgpack.decode(output_item.value, type=Payload)
     assert payload_out.frame_index == 1
-    assert payload_out.original_height == 2160
-    assert payload_out.original_width == 3840
     assert len(payload_out.bounding_boxes) == 1
     assert payload_out.bounding_boxes[0].confidence == 0.9
     assert payload_out.bounding_boxes[0].class_id == 1
@@ -208,13 +194,11 @@ async def test_reduce_remove_frames(
     # First frame from source
     payload_source1 = Payload(
         frame_index=1,
-        original_height=2160,
-        original_width=3840,
         compressed_frame=b'frame1',
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_source1),
             event_time=datetime.now(tz=UTC),
             watermark=watermark1,
@@ -226,8 +210,6 @@ async def test_reduce_remove_frames(
     watermark2 = datetime.now(tz=UTC)
     payload_inference2 = Payload(
         frame_index=2,
-        original_height=2160,
-        original_width=3840,
         bounding_boxes=[
             BoundingBox(
                 confidence=0.9,
@@ -241,7 +223,7 @@ async def test_reduce_remove_frames(
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_inference2),
             event_time=datetime.now(tz=UTC),
             watermark=watermark2,
@@ -253,8 +235,6 @@ async def test_reduce_remove_frames(
     # (Never be assumued in real, for test only)
     payload_inference1 = Payload(
         frame_index=1,
-        original_height=2160,
-        original_width=3840,
         bounding_boxes=[
             BoundingBox(
                 confidence=0.9,
@@ -268,7 +248,7 @@ async def test_reduce_remove_frames(
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_inference1),
             event_time=datetime.now(tz=UTC),
             watermark=watermark1,
@@ -298,8 +278,6 @@ async def test_reduce_keep_results(
     # First result from inference
     payload_inference1 = Payload(
         frame_index=1,
-        original_height=2160,
-        original_width=3840,
         bounding_boxes=[
             BoundingBox(
                 confidence=0.9,
@@ -313,7 +291,7 @@ async def test_reduce_keep_results(
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_inference1),
             event_time=datetime.now(tz=UTC),
             watermark=watermark1,
@@ -325,8 +303,6 @@ async def test_reduce_keep_results(
     watermark2 = datetime.now(tz=UTC)
     payload_inference2 = Payload(
         frame_index=2,
-        original_height=2160,
-        original_width=3840,
         bounding_boxes=[
             BoundingBox(
                 confidence=0.9,
@@ -340,7 +316,7 @@ async def test_reduce_keep_results(
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_inference2),
             event_time=datetime.now(tz=UTC),
             watermark=watermark2,
@@ -351,13 +327,11 @@ async def test_reduce_keep_results(
     # First frame from source
     payload_source1 = Payload(
         frame_index=1,
-        original_height=2160,
-        original_width=3840,
         compressed_frame=b'frame1',
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_source1),
             event_time=datetime.now(tz=UTC),
             watermark=watermark1,
@@ -376,8 +350,6 @@ async def test_reduce_keep_results(
     # Keys are merged
     payload_out = msgspec.msgpack.decode(output_item.value, type=Payload)
     assert payload_out.frame_index == 1
-    assert payload_out.original_height == 2160
-    assert payload_out.original_width == 3840
     assert len(payload_out.bounding_boxes) == 1
     assert payload_out.bounding_boxes[0].confidence == 0.9
     assert payload_out.bounding_boxes[0].class_id == 1
@@ -406,8 +378,6 @@ async def test_reduce_remove_results(
     # First result from inference
     payload_inference1 = Payload(
         frame_index=1,
-        original_height=2160,
-        original_width=3840,
         bounding_boxes=[
             BoundingBox(
                 confidence=0.9,
@@ -421,7 +391,7 @@ async def test_reduce_remove_results(
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_inference1),
             event_time=datetime.now(tz=UTC),
             watermark=watermark1,
@@ -433,13 +403,11 @@ async def test_reduce_remove_results(
     watermark2 = datetime.now(tz=UTC)
     payload_source2 = Payload(
         frame_index=2,
-        original_height=2160,
-        original_width=3840,
         compressed_frame=b'frame2',
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_source2),
             event_time=datetime.now(tz=UTC),
             watermark=watermark2,
@@ -451,13 +419,11 @@ async def test_reduce_remove_results(
     # (Never be assumued in real, for test only)
     payload_source1 = Payload(
         frame_index=1,
-        original_height=2160,
-        original_width=3840,
         compressed_frame=b'frame1',
     )
     await input_queue.put(
         Datum(
-            keys=['NON_KEYED_STREAM'],
+            keys=['1'],
             value=msgspec.msgpack.encode(payload_source1),
             event_time=datetime.now(tz=UTC),
             watermark=watermark1,
