@@ -1,8 +1,12 @@
-- name: Install pipx
+- name: Install development tools
   become: true
   ansible.builtin.apt:
     update_cache: true
-    name: pipx
+    name:
+      - make
+      - pipx
+      - python3.12
+      - python3.12-venv
 
 - name: Check pipx list
   ansible.builtin.command: pipx list
@@ -12,5 +16,5 @@
 # DO NOT use community.general.pipx because it requires pipx 1.7.0 or later
 # but Ubuntu 24.04 provides only 1.4.3.
 - name: Install poetry
-  ansible.builtin.command: pipx install poetry
   when: not "poetry" in numaflow_dra_tools_pipx.stdout
+  ansible.builtin.command: pipx install poetry

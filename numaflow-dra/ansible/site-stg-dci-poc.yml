@@ -6,6 +6,30 @@
 ---
 - name: Setup Ubuntu 24.04
   hosts: all
+  pre_tasks:
+    # Remove old apt_key/apt_repository artifacts that conflict with
+    # the new deb822_repository entries.  Safe to delete once every
+    # host has been reprovisioned with deb822.
+    - name: Remove legacy apt_key keyrings
+      become: true
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        - /etc/apt/keyrings/cri-o-apt-keyring.gpg
+        - /etc/apt/keyrings/nvidia-container-toolkit-keyring.gpg
+        - /etc/apt/keyrings/helm-keyring.gpg
+    - name: Remove legacy apt_repository sources
+      become: true
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/apt/sources.list.d/kubernetes.list
+        - /etc/apt/sources.list.d/cri-o.list
+        - /etc/apt/sources.list.d/nvidia-container-toolkit.list
+        - /etc/apt/sources.list.d/helm.list
   roles:
     - ubuntu_2404
     - ubuntu_common

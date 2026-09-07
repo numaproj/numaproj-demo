@@ -63,8 +63,8 @@ def test_filter_resize_stream(
 
         # check attributes
         assert payload.frame_index == idx
-        assert payload.original_height >= fr_output_height
-        assert payload.original_width >= fr_output_width
+        assert payload.frame_height >= fr_output_height
+        assert payload.frame_width >= fr_output_width
 
         # check resized image
         assert img is not None

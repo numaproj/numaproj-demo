@@ -3,6 +3,6 @@
   hosts: k8s_master
   roles:
     # nvidia_driver is required for hardware acceleration support.
-    # Run nvidia_driver first, then demo_remote_desktop to set runlevel to 5.
+    # Run nvidia_driver first, then demo_remote_desktop to set the default target to graphical.target.
     - nvidia_driver
     - demo_remote_desktop

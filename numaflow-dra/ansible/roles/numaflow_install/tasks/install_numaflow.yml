@@ -2,7 +2,7 @@
   ansible.builtin.git:
     repo: https://github.com/numaproj/numaflow.git
     dest: "{{ numaflow_install_repo_path }}"
-    version: "{{ numaflow_install.numaflow_version }}"
+    version: "v{{ numaflow_install.numaflow_version }}"
 
 - name: Install kubernetes python module
   ansible.builtin.pip:
@@ -24,9 +24,20 @@
     src: "{{ numaflow_install_repo_path }}/config/install.yaml"
     namespace: numaflow-system
 
-- name: Wait for all pods to be ready in numaflow-system
+- name: Get all deployments in numaflow-system
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    namespace: numaflow-system
+  register: numaflow_install_deployments
+
+- name: Wait for all deployments to be rolled out in numaflow-system
   ansible.builtin.command: >
-    kubectl wait --namespace=numaflow-system --for=condition=Ready pods --all --timeout=120s
+    kubectl rollout status deployment/{{ item.metadata.name }}
+    --namespace=numaflow-system --timeout=120s
+  loop: "{{ numaflow_install_deployments.resources }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"
   changed_when: false
 
 - name: Check if the service numaflow-dex-server exists

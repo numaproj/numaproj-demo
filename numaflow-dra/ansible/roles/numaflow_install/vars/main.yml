@@ -1,1 +1,10 @@
 numaflow_install_repo_path: "{{ ansible_facts['env']['HOME'] }}/git/numaflow"
+
+numaflow_install_disks:
+  # 3200 = 3*1024 (available capacity) + 128 (filesystem overhead)
+  - size_mib: 3200
+    name: pv-isbsvc1
+  - size_mib: 3200
+    name: pv-isbsvc2
+  - size_mib: 3200
+    name: pv-isbsvc3

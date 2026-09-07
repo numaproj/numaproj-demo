@@ -1,0 +1,161 @@
+apiVersion: numaflow.numaproj.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: low-yolov4
+spec:
+  vertices:
+    - name: in
+      scale:
+        min: 1
+        max: 1
+      source:
+        udsource:
+          container:
+            image: $REGISTRY_URL/numaflow/dci-poc:stable
+            imagePullPolicy: Always
+            env:
+              - name: SCRIPT
+                value: source
+            envFrom:
+              - configMapRef:
+                  name: app-env-cm
+            volumeMounts:
+              - mountPath: /mnt/whitebox
+                name: whitebox-volume
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: whitebox-volume
+          hostPath:
+            path: /mnt/whitebox
+            type: DirectoryOrCreate
+    - name: filter-resize
+      scale:
+        min: 1
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc-gpu-fr:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: fr-stream
+          envFrom:
+            - configMapRef:
+                name: app-env-cm
+          resources:
+            claims:
+              - name: gpu
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
+      limits:
+        readBatchSize: 1
+    - name: filter-resize2
+      scale:
+        min: 1
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc-gpu-fr:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: fr-stream
+          envFrom:
+            - configMapRef:
+                name: fr2-env-cm
+          resources:
+            claims:
+              - name: gpu
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
+      limits:
+        readBatchSize: 1
+    - name: inference
+      scale:
+        min: 1
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc-gpu-yolov4:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: inf-stream-yolov4
+          envFrom:
+            - configMapRef:
+                name: app-env-cm
+          resources:
+            claims:
+              - name: gpu
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
+      limits:
+        readBatchSize: 1
+    - name: stream-join
+      partitions: 1
+      scale:
+        min: 1
+        max: 1
+      udf:
+        container:
+          image: $REGISTRY_URL/numaflow/dci-poc:stable
+          imagePullPolicy: Always
+          env:
+            - name: SCRIPT
+              value: reduce
+          envFrom:
+            - configMapRef:
+                name: app-env-cm
+        groupBy:
+          window:
+            accumulator:
+              timeout: 5s
+          keyed: true
+          storage:
+            persistentVolumeClaim:
+              volumeSize: 3Gi
+              storageClassName: local-storage
+      limits:
+        readBatchSize: 1
+    - name: out
+      scale:
+        min: 1
+        max: 1
+      sink:
+        udsink:
+          container:
+            image: $REGISTRY_URL/numaflow/dci-poc:stable
+            imagePullPolicy: Always
+            volumeMounts:
+              - name: log-volume
+                mountPath: /var/tmp/logs/numaflow-dra/dci_poc_fr2
+            env:
+              - name: SCRIPT
+                value: sink
+            envFrom:
+              - configMapRef:
+                  name: fr2-env-cm
+      limits:
+        readBatchSize: 1
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /var/tmp/logs/numaflow-dra/dci_poc_fr2
+            type: DirectoryOrCreate
+  edges:
+    - from: in
+      to: filter-resize
+    - from: in
+      to: filter-resize2
+    - from: filter-resize
+      to: inference
+    - from: inference
+      to: stream-join
+    - from: filter-resize2
+      to: stream-join
+    - from: stream-join
+      to: out

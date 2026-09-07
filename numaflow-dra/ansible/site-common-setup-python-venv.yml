@@ -2,21 +2,44 @@
 - name: Create Python virtual environment on remote hosts
   hosts: all
   tasks:
-    - name: Ensure python3-venv package is installed (Debian/Ubuntu)
+    # Required for ansible.builtin.deb822_repository
+    - name: Ensure python3-debian package is installed (Debian/Ubuntu)
+      become: true
       ansible.builtin.apt:
         update_cache: true
-        name: python3-venv
-        state: present
+        name: python3-debian
+
+    # We do not have to worry about conflict between deadsnakes/ppa and
+    # upstream ubuntu because the former does not provide the version
+    # provided by the latter (3.12 on Ubuntu 24.04, for example).
+    # See https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa
+    - name: Add deadsnakes/ppa
       become: true
+      ansible.builtin.deb822_repository:
+        name: deadsnakes
+        types: deb
+        uris: https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu
+        suites: "{{ ansible_facts['distribution_release'] }}"
+        components: main
+        signed_by: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf23c5a6cf475977595c89f51ba6932366a755776
+
+    - name: Ensure python3.x and python3.x-venv package is installed (Debian/Ubuntu)
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - "python{{ python_ver }}"
+          - "python{{ python_ver }}-venv"
+        state: present
 
     - name: Create Python virtual environment if not exists
-      ansible.builtin.command: python3 -m venv /home/{{ ansible_user }}/.venvs/ansible
+      ansible.builtin.command: "python{{ python_ver }} -m venv /home/{{ ansible_user }}/.venvs/ansible/python{{ python_ver }}"
       args:
-        creates: /home/{{ ansible_user }}/.venvs/ansible/bin/activate
+        creates: "/home/{{ ansible_user }}/.venvs/ansible/python{{ python_ver }}/bin/activate"
 
     - name: Upgrade pip in virtualenv
-      ansible.builtin.command: /home/{{ ansible_user }}/.venvs/ansible/bin/python{{ python_ver }} -m pip install --upgrade pip
+      ansible.builtin.command: "/home/{{ ansible_user }}/.venvs/ansible/python{{ python_ver }}/bin/python{{ python_ver }} -m pip install --upgrade pip"
 
     # "package" python module must be installed beforehand to use ansible.builtin.pip module
     - name: Install packaging module
-      ansible.builtin.command: /home/{{ ansible_user }}/.venvs/ansible/bin/python{{ python_ver }} -m pip install packaging
+      ansible.builtin.command: "/home/{{ ansible_user }}/.venvs/ansible/python{{ python_ver }}/bin/python{{ python_ver }} -m pip install packaging"

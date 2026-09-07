@@ -1,17 +1,76 @@
-- name: Add GPG key for Helm deb repository
-  become: true
-  ansible.builtin.apt_key:
-    url: https://packages.buildkite.com/helm-linux/helm-debian/gpgkey
-    keyring: /etc/apt/keyrings/helm-keyring.gpg
-
 - name: Add Helm deb repository
   become: true
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/helm-keyring.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main"
-    filename: helm
+  ansible.builtin.deb822_repository:
+    name: helm
+    types: deb
+    uris: https://packages.buildkite.com/helm-linux/helm-debian/any/
+    suites: any
+    components: main
+    signed_by: https://packages.buildkite.com/helm-linux/helm-debian/gpgkey
 
-- name: Install Helm
+- name: Install GnuPG and Helm
   become: true
   ansible.builtin.apt:
     update_cache: true
-    name: helm
+    name:
+      - gnupg
+      - helm
+
+- name: Ensure that there is $HOME/.gnupg directory
+  ansible.builtin.file:
+    path: "{{ ansible_facts['env']['HOME'] }}/.gnupg"
+    state: directory
+    mode: "0700"
+
+- name: Download Helm Diff GPG key
+  become: true
+  ansible.builtin.get_url:
+    url: https://github.com/databus23.gpg
+    dest: "{{ ansible_facts['env']['HOME'] }}/databus23.gpg"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: Import Helm Diff GPG key
+  ansible.builtin.command: gpg --import {{ ansible_facts['env']['HOME'] }}/databus23.gpg
+  register: helm_diff_gpg_key
+  changed_when: >
+    "imported" in helm_diff_gpg_key.stderr
+
+# See: https://github.com/helm/helm/issues/2843#issuecomment-1462927026
+- name: Export pubring to a temporary file in old format
+  args:
+    # For set -o pipefail
+    executable: /bin/bash
+  ansible.builtin.shell: |
+    set -o pipefail
+    gpg --export >'{{ ansible_facts["env"]["HOME"] }}/pubring.gpg.tmp'
+  changed_when: false
+
+- name: Copy the temporary file back to pubring in old format
+  ansible.builtin.copy:
+    remote_src: true
+    src: "{{ ansible_facts['env']['HOME'] }}/pubring.gpg.tmp"
+    dest: "{{ ansible_facts['env']['HOME'] }}/.gnupg/pubring.gpg"
+    mode: "0664"
+    backup: true
+
+- name: Remove the temporary file
+  ansible.builtin.file:
+    path: "{{ ansible_facts['env']['HOME'] }}/pubring.gpg.tmp"
+    state: absent
+  changed_when: false
+
+- name: Assert that the host architecture is x86_64 (amd64)
+  ansible.builtin.assert:
+    that: ansible_facts['architecture'] == 'x86_64'
+    success_msg: The host architecture is x86_64; continue installation.
+    fail_msg: The host architecture is not x86_64; abort installation.
+
+# See:
+# - https://github.com/ansible-collections/kubernetes.core/issues/174#issuecomment-1591449694
+# - https://github.com/databus23/helm-diff#installing-offline
+- name: Install Helm Diff (amd64)
+  kubernetes.core.helm_plugin:
+    plugin_path: https://github.com/databus23/helm-diff/releases/latest/download/helm-diff-linux-amd64.tgz
+    keyring: "{{ ansible_facts['env']['HOME'] }}/.gnupg/pubring.gpg"

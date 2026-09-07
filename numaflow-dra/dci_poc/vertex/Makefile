@@ -25,21 +25,15 @@ image: update
 	-t ${IMAGE_REGISTRY} .
 	@if [ "$(PUSH)" = "true" ]; then $(DOCKER) push ${IMAGE_REGISTRY}; fi
 
-# Testing individually
-test-exe:
-ifndef APP
-	$(error Specify tested APP. The name of APP match ../../tests/dci_poc/APP_NAME dir. ex: make test APP=APP_NAME)
-endif
-	PYTHONPATH=../../ poetry run pytest -s ../../tests/dci_poc/$(APP)
-
-# Testing all at once
-test-vertex:
+.PHONY: test
+test:
 	PYTHONPATH=../../ SOURCE_INPUT_TYPE=file poetry run pytest -s ../../tests/dci_poc/source/test_source.py::test_source_under_file_src -v
 	PYTHONPATH=../../ SOURCE_INPUT_TYPE=stream poetry run pytest -s ../../tests/dci_poc/source/test_source.py::test_source_under_stream_src -v
 	PYTHONPATH=../../ poetry run pytest -s ../../tests/dci_poc/reduce -v
 	PYTHONPATH=../../ poetry run pytest -s ../../tests/dci_poc/sink -v
 
-test-setup:
+.PHONY: setup
+setup:
 	sudo apt-get update
 	sudo apt-get -y install $$(grep -vE '^\s*#|^\s*$$' apt-packages.txt | sed 's/\s*#.*$$//')
 	poetry install --with dev --no-root

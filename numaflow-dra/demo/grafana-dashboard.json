@@ -4216,8 +4216,8 @@
       },
       {
         "current": {
-          "text": "dci-poc-pipeline3-dev",
-          "value": "dci-poc-pipeline3-dev"
+          "text": "high-yolov7",
+          "value": "high-yolov7"
         },
         "datasource": {
           "type": "prometheus",
@@ -4237,8 +4237,8 @@
       },
       {
         "current": {
-          "text": "dci-poc-pipeline3-dev-in",
-          "value": "dci-poc-pipeline3-dev-in"
+          "text": "high-yolov7-in",
+          "value": "high-yolov7-in"
         },
         "datasource": {
           "type": "prometheus",

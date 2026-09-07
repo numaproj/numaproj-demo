@@ -6,7 +6,7 @@ authors = ["sesame0224"]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-pynumaflow = "0.12.1"
+pynumaflow = "0.14.0"
 
 opencv-python = "4.10.0.84"
 numpy = "2.2.2"

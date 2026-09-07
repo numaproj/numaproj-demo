@@ -5,8 +5,8 @@ if [ -f repo.env ]; then
     export $(grep -vE '^\s*#|^\s*$' repo.env | sed 's/\s*#.*$//')
 fi
 
-# Convert pipelineXXX.yaml.template into pipelineXXX.yaml
-find . -type f -name 'pipeline*.yaml.template' | while read template_file; do
+# Convert foobar.yaml.template into foobar.yaml
+find . -type f -name '*.yaml.template' | while read template_file; do
     if [ -f "$template_file" ]; then
         output_file="${template_file%.template}"
 

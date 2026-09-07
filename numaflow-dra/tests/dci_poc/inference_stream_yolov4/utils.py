@@ -22,8 +22,8 @@ def request_generator(count, session=1, handshake=True):
             frame = cv2.imdecode(np.frombuffer(encoded_frame, np.uint8), cv2.IMREAD_UNCHANGED)
             payload = Payload(
                 frame_index=read_idx,
-                original_height=frame.shape[0],
-                original_width=frame.shape[1],
+                frame_height=frame.shape[0],
+                frame_width=frame.shape[1],
                 compressed_frame=encoded_frame,
             )
 
