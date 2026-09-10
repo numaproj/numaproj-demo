@@ -12,7 +12,8 @@ class BoundingBox(Struct):
 
 class Payload(Struct):
     frame_index: int
-    original_height: int
-    original_width: int
+    frame_height: int | None = None
+    frame_width: int | None = None
     bounding_boxes: list[BoundingBox] = []
     compressed_frame: bytes | None = None
+    secondary_frame: bytes | None = None

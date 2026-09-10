@@ -29,15 +29,8 @@ image: update
 	-t ${IMAGE_REGISTRY} .
 	@if [ "$(PUSH)" = "true" ]; then $(DOCKER) push ${IMAGE_REGISTRY}; fi
 
-# Testing individually
-test-exe:
-ifndef APP
-	$(error Specify tested APP. The name of APP match ../../tests/dci_poc/APP_NAME dir. ex: make test APP=APP_NAME)
-endif
-	PYTHONPATH=../../ poetry run pytest -s ../../tests/dci_poc/$(APP)
-
-# Testing all at once
-test-vertex:
+.PHONY: test
+test:
 	. ../../opencv-cuda/.local/bin/setup_vars_opencv4.sh && \
 		PYTHONPATH=../../:$$PYTHONPATH FR_USE_CUDA=0 \
 		poetry run pytest -s ../../tests/dci_poc/filter_resize_stream -v
@@ -45,7 +38,9 @@ test-vertex:
 		PYTHONPATH=../../:$$PYTHONPATH FR_USE_CUDA=1 \
 		poetry run pytest -s ../../tests/dci_poc/filter_resize_stream -v
 
-test-setup:
+.PHONY: setup
+setup:
+	./setup-cuda-repos.sh
 	sudo apt-get update
 	sudo apt-get -y install $$(grep -vE '^\s*#|^\s*$$' apt-packages.txt | sed 's/\s*#.*$$//')
 	poetry install --with dev --no-root

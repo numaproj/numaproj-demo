@@ -186,10 +186,27 @@ def compress_frame(frame: np.ndarray) -> bytes:
     return buf.tobytes()
 
 
+def decompress_frame(bytez: bytes) -> np.ndarray:
+    frame = cv2.imdecode(np.frombuffer(bytez, np.uint8), cv2.IMREAD_COLOR)
+    if frame is None:
+        raise RuntimeError
+    return frame
+
+
 # return np array as if use cv2.VideoCapture().read()
 # color space is BGR in CV2
 def mock_4k_frame():
     frame = np.full((2160, 3840, 3), (0, 0, 255), dtype=np.uint8)
+    return frame
+
+
+def mock_hd_frame():
+    frame = np.full((1080, 1920, 3), (0, 0, 255), dtype=np.uint8)
+    return frame
+
+
+def mock_416_frame():
+    frame = np.full((416, 416, 3), (0, 0, 255), dtype=np.uint8)
     return frame
 
 

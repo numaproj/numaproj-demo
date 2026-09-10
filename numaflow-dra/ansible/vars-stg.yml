@@ -1,15 +1,23 @@
+# All version values in this file MUST be written WITHOUT the "v" prefix.
+# The playbooks add "v" where needed (e.g., repository URLs, git tags).
+
 ubuntu_common:
   timezone: Asia/Tokyo
 
 # kubernetes-cluster.yml
+# repo_ver: apt repository minor version (X.Y only, not X.Y.Z).
+#   e.g., 1.35 — the repository hosts all patch releases in this series.
+# k8s_ver, crio_ver: apt package version with the release suffix (X.Y.Z-S.S).
+#   e.g., 1.35.3-1.1 — apt requires the exact version string including suffix.
 kubeadm_install:
-  package_ver: v1.35
-  k8s_ver: 1.35.2-1.1
-  crio_ver: 1.35.2-1.1
+  repo_ver: 1.36
+  k8s_ver: 1.36.4-1.1
+  crio_ver: 1.36.4-1.1
 
+# kubeadm_init_join.k8s_ver: Kubernetes version without the release suffix.
+#   e.g., 1.35.3 — passed to "kubeadm init --kubernetes-version".
 kubeadm_init_join:
-  # This must be the same as kubeadm_install.k8s_ver
-  k8s_ver: 1.35.2
+  k8s_ver: 1.36.4
   # pod_network_cidr: A CIDR block passed to kubeadm init --pod-network-cidr.
   # It can be within any of IPv4 private address ranges but MUST NOT overlap
   # any of the host networks [1].
@@ -24,17 +32,18 @@ kubeadm_init_join:
 
 calico:
   # https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#supported-versions
-  calico_ver: v3.31.4
+  calico_ver: 3.32.1
 
 dra_driver_nvidia_gpu:
-  k8s_dra_driver_gpu_ver: v25.12.0
+  nfd_ver: 0.19.0
+  dra_driver_nvidia_gpu_ver: 0.5.0
 
 numaflow_install:
-  numaflow_version: v1.7.1
+  numaflow_version: 1.8.3
 
 kube_prometheus:
   # See the compatibility section [1] and tags [2] to decide your
   # version of kube-prometheus stack being installed.
   # [1] https://github.com/prometheus-operator/kube-prometheus?tab=readme-ov-file#compatibility
   # [2] https://github.com/prometheus-operator/kube-prometheus/tags
-  kube_prometheus_ver: v0.16.0
+  kube_prometheus_ver: 0.18.0

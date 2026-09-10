@@ -1,5 +1,6 @@
 ---
 - name: Install Numaflow
-  hosts: k8s_master
+  # Note that some tasks in numaflow_install should be run on a worker node
+  hosts: all
   roles:
     - numaflow_install

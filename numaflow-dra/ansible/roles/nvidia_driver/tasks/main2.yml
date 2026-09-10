@@ -1,0 +1,73 @@
+- name: Check if nouveau is loaded or not
+  ansible.builtin.command: lsmod
+  register: nvidia_driver_nouveau
+  changed_when: false
+
+# We may have no available driver after blacklisting nouveau. So we change
+# the runlevel to 3 here in order to ensure the safety of the display.
+#
+# Do not change it to 3 here unconditionally since the role remote_desktop
+# will change the runlevel to 5 hereafter,  Otherwise we will have "changed"
+# status for every run of the root playbook though the actual status is
+# not changed consequently (runlevel 5 -> 3 -> 5).
+- name: Ensure display safety after blacklisting nouveau
+  when: >-
+    "nouveau" in nvidia_driver_nouveau.stdout
+  ansible.builtin.import_tasks: runlevel-3.yml
+
+- name: Blacklist nouveau to avoid conflicts with NVIDIA native driver
+  ansible.builtin.import_tasks: blacklist-nouveau.yml
+
+# We do not need to run "sudo add-apt-repository ppa:graphics-drivers/ppa"
+# on Ubuntu 24.04.
+
+# Without aplay (in alsa-utils), you will get the following message when you
+# run ubuntu-drivers:
+#
+#   ERROR:root:aplay command not found
+#
+- name: Install ubuntu-drivers (in ubuntu-drivers-common)
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - ubuntu-drivers-common
+      - alsa-utils
+
+- name: Check if nvidia-driver is already installed
+  ansible.builtin.command: apt list --installed 'nvidia-driver-*'
+  register: nvidia_driver_apt_list
+  changed_when: false
+
+- name: (Installing nvidia-driver)
+  when: >-
+    "nvidia-driver-" not in nvidia_driver_apt_list.stdout
+  block:
+    #
+    # You will get the following message when you run ubuntu-drivers:
+    #
+    #   udevadm hwdb is deprecated. Use systemd-hwdb instead.
+    #
+    # It's an ubuntu-driver's issue. Wait for fix released.
+    # See: https://bugs.launchpad.net/ubuntu/+source/ubuntu-drivers-common/+bug/2037004
+    #
+    - name: Install recommended nvidia-driver
+      become: true
+      ansible.builtin.command: sudo ubuntu-drivers install --recommended
+      notify:
+        - Reboot machine
+
+    - name: Check again if nvidia-driver is already installed
+      ansible.builtin.command: apt list --installed 'nvidia-driver-*'
+      register: nvidia_driver_guardian_apt_list
+      changed_when: false
+      failed_when: >-
+        nvidia_driver_guardian_apt_list.rc >= 1
+        or "nvidia-driver-" not in nvidia_driver_guardian_apt_list.stdout
+
+    - name: Flush handlers
+      ansible.builtin.meta: flush_handlers
+
+- name: Check if nvidia-smi is installed
+  ansible.builtin.command: nvidia-smi -L
+  changed_when: false

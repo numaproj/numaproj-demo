@@ -1,6 +1,8 @@
 ---
 collections:
+  - name: ansible.posix
+    version: 2.2.2
   - name: community.general
     version: 12.5.0
   - name: kubernetes.core
-    version: 6.3.0
+    version: 6.5.0

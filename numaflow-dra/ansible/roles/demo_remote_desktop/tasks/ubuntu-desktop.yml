@@ -1,8 +1,12 @@
+# needrestart auto-restarts daemons (including sshd) when shared libraries
+# are updated, which kills the SSH connection mid-task. See #115.
 - name: Install ubuntu-desktop-minimal
   become: true
   ansible.builtin.apt:
     name:
       - ubuntu-desktop-minimal
+  environment:
+    NEEDRESTART_SUSPEND: "1"
 
 # graphical.target means runlevel 5
 - name: Get the current default target

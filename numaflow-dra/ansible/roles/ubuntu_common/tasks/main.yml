@@ -17,6 +17,7 @@
     name:
       - git
       - jq
+      - screen
 
 - name: Set timezone
   become: true

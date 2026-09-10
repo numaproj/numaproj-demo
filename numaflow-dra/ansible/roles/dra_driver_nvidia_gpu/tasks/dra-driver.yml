@@ -1,0 +1,61 @@
+# It's difficult to update legacy driver (version <= 25.12.x) to modern
+# one (>= 0.5.0) because the former is installed in another namespace
+# (nvidia-dra-driver-gpu) by the shell script (install-dra-driver-gpu.sh).
+# So we will abort installation if the legacy one is found.
+- name: Check if legacy driver is already installed
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    namespace: nvidia-dra-driver-gpu
+    name: nvidia-dra-driver-gpu-controller
+  register: dra_driver_nvidia_gpu_legacy
+
+- name: Abort installation if legacy driver is already installed
+  ansible.builtin.assert:
+    that:
+      - dra_driver_nvidia_gpu_legacy.resources|length == 0
+        or dra_driver_nvidia_gpu_legacy.resources[0].metadata.labels["app.kubernetes.io/version"]
+          == dra_driver_nvidia_gpu.dra_driver_nvidia_gpu_ver
+    success_msg: There is no legacy DRA driver; continue installation.
+    fail_msg: >
+      There is legacy DRA driver already installed in "nvidia-dra-driver-gpu"
+      namespace and this Ansible playbook does not support upgrade from it.
+      Please uninstall manually the legacy driver and run again the playbook.
+
+# Assume that the "helm" role has already run.
+# See https://dra-driver-nvidia-gpu.sigs.k8s.io/docs/install/
+- name: Install DRA Driver for NVIDIA GPUs
+  kubernetes.core.helm:
+    name: dra-driver-nvidia-gpu
+    chart_ref: oci://registry.k8s.io/dra-driver-nvidia/charts/dra-driver-nvidia-gpu
+    chart_version: "{{ dra_driver_nvidia_gpu.dra_driver_nvidia_gpu_ver }}"
+    release_namespace: dra-driver-nvidia-gpu
+    create_namespace: true
+    set_values:
+      - value: gpuResourcesEnabledOverride=true
+        value_type: string
+    wait: true
+
+- name: Wait until dra-driver-nvidia-gpu Pods get Ready
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: dra-driver-nvidia-gpu
+    label_selectors:
+      - app.kubernetes.io/name=nvidia-dra-driver-gpu
+      - nvidia-dra-driver-gpu-component={{ item }}
+    wait: true
+    wait_condition:
+      type: Ready
+  loop:
+    - controller
+    - kubelet-plugin
+
+- name: Check if there is the DeviceClass gpu.nvidia.com
+  kubernetes.core.k8s_info:
+    kind: DeviceClass
+    name: gpu.nvidia.com
+  register: dra_driver_nvidia_gpu_deviceclass
+  until: >
+    dra_driver_nvidia_gpu_deviceclass.resources is defined and
+    dra_driver_nvidia_gpu_deviceclass.resources|length > 0
+  retries: 10
+  delay: 6

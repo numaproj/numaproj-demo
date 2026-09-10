@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import time
@@ -10,7 +9,6 @@ from threading import Event, Thread
 import cv2
 import msgspec
 import numpy as np
-from pynumaflow import setup_logging
 from pynumaflow._constants import STREAM_EOF
 from pynumaflow.shared.asynciter import NonBlockingIterator
 from pynumaflow.sourcer import (
@@ -26,11 +24,16 @@ from pynumaflow.sourcer import (
     get_default_partitions,
 )
 
-from lib.log import (
-    add_new_filehandler,
-    set_logger_log_level,
-)
+from lib.log import setup_logging
 from lib.message_spec import Payload
+
+_logger = None
+
+
+def setup_logger():
+    global _logger
+    if _logger is None:
+        _logger = setup_logging(__name__)
 
 
 class FrameForInput:
@@ -60,10 +63,9 @@ class AsyncVideoReader(Thread):
     and a queue to let the caller safely access encoded frames across threads.
     """
 
-    def __init__(self, logger: logging.Logger, failed_read_threshold=30, reconnect_threshold=5):
+    def __init__(self, failed_read_threshold=30, reconnect_threshold=5):
         Thread.__init__(self)
 
-        self.logger = logger
         self.next_frame_queue = Queue(maxsize=1)
         self.cap = None
         self.failed_read_threshold = failed_read_threshold
@@ -72,26 +74,26 @@ class AsyncVideoReader(Thread):
         self.stopped = Event()
 
         # setup ENV
-        self.input_type = os.getenv('SOURCE_INPUT_TYPE')
         self.jpeg_quality = int(os.getenv('JPEG_QUALITY', '90'))
-        if self.input_type is None:
-            self.logger.error('environment variable SOURCE_INPUT_TYPE not set')
-            sys.exit(1)
 
-        if self.input_type == 'stream':
+        self.input_type = os.getenv('SOURCE_INPUT_TYPE')
+        if self.input_type is None:
+            _logger.error('Environment variable SOURCE_INPUT_TYPE not set')
+            sys.exit(1)
+        elif self.input_type == 'stream':
             self.video_src = os.getenv('VIDEO_STREAM_SRC')
-            self.logger.info(f'video_stream_src: {self.video_src}')
+            _logger.info(f'VIDEO_STREAM_SRC: {self.video_src}')
             if self.video_src is None:
-                self.logger.error('environment variable VIDEO_STREAM_SRC not set')
+                _logger.error('Environment variable VIDEO_STREAM_SRC not set')
                 sys.exit(1)
         elif self.input_type == 'file':
             self.video_src = os.getenv('VIDEO_FILE_SRC')
-            self.logger.info(f'video_file_src: {self.video_src}')
+            _logger.info(f'VIDEO_FILE_SRC: {self.video_src}')
             if self.video_src is None:
-                self.logger.error('environment variable VIDEO_FILE_SRC not set')
+                _logger.error('Environment variable VIDEO_FILE_SRC not set')
                 sys.exit(1)
         else:
-            self.logger.error('environment variable SOURCE_INPUT_TYPE is a file or stream')
+            _logger.error('Environment variable SOURCE_INPUT_TYPE is not file nor stream')
             sys.exit(1)
 
     def run(self) -> None:
@@ -99,14 +101,14 @@ class AsyncVideoReader(Thread):
 
         if self.input_type == 'stream':
             # assume stream file is infinite
-            self.logger.info('AsyncVideoReader: run stream')
+            _logger.info('Run in stream mode')
             self._run_stream()
         elif self.input_type == 'file':
             # assume video_src is mp4 file
-            self.logger.info('AsyncVideoReader: run file')
+            _logger.info('Run in file mode')
             self._run_file()
         else:
-            self.logger.error("SOURCE_INPUT_TYPE doesn't match the format")
+            _logger.error('SOURCE_INPUT_TYPE is not stream nor file')
             sys.exit(1)
 
     def _run_stream(self):
@@ -116,40 +118,40 @@ class AsyncVideoReader(Thread):
         try:
             while not self.stopped.is_set():
                 if self.cap and not self.cap.isOpened():
-                    self.logger.error("OpenCV couldn't src file")
+                    _logger.error('Captured stream is not opened')
                     sys.exit(1)
 
                 ret, raw_frame = self.cap.read()
 
                 if not ret or raw_frame is None:
-                    self.logger.info('Failed to read frame')
+                    _logger.warning('Failed to read frame from stream')
                     _failed_read_count += 1
 
                     if _failed_read_count > self.failed_read_threshold:
                         _reconnect_count += 1
 
                         if _reconnect_count > self.reconnect_threshold:
-                            self.logger.error('Reconnect count is over threshold')
+                            _logger.error('Reconnection retry count exceeded')
                             sys.exit(1)
 
-                        self.logger.info('Trying to reconnect src')
+                        _logger.info('Trying to reconnect to stream')
                         self._open_capture_video()
                         self.read_false_count = 0
                 else:
                     self.read_false_count = 0
 
-                    self.logger.info('Read rightly')
+                    _logger.debug('Read rightly from stream')
                     compressed_frame = self._compress_frame(raw_frame)
                     self._put_latest(FrameForInput(raw_frame, compressed_frame))
         finally:
-            self.logger.info('_run_stream close')
+            _logger.info('Closing connection to source stream')
             self._cap_release()
 
     def _run_file(self):
         self._show_frame_num()
         # Set the value to 15 fps or higher, ensuring it is visually perceivable
         # # When the value is 20, the actual FPS on the video receiving server is around 10
-        fps = 20.0
+        fps = 15.0
         frame_period = 1.0 / fps
         t_start = time.monotonic()
 
@@ -157,12 +159,12 @@ class AsyncVideoReader(Thread):
             while not self.stopped.is_set():
                 ret, raw_frame = self.cap.read()
                 if not ret:
-                    self.logger.info('File has ended')
+                    _logger.info('File has ended')
                     # a None means end of file (queue.Queue can accept None)
                     self.next_frame_queue.put(None)
                     return
 
-                self.logger.info('Read rightly')
+                _logger.debug('Read rightly from file')
                 compressed_frame = self._compress_frame(raw_frame)
 
                 # Add sleep process to prevent the video from
@@ -176,7 +178,7 @@ class AsyncVideoReader(Thread):
 
                 t_start = time.monotonic()
         finally:
-            self.logger.info('_run_file close')
+            _logger.info('Closing source file')
             self._cap_release()
 
     # The stop method is never called because the Sourcer class start method blocks internally
@@ -190,25 +192,23 @@ class AsyncVideoReader(Thread):
         return self.next_frame_queue.get()
 
     def _open_capture_video(self) -> None:
-        self.logger.debug('_open_capture_video')
-
         # Release previous object
         self._cap_release()
 
         self.cap = cv2.VideoCapture(self.video_src)
 
         if not self.cap.isOpened():
-            self.logger.error(f'Failed to open video file: {self.video_src}')
+            _logger.error(f'Failed to open video source: {self.video_src}')
             sys.exit(1)
 
     def _show_frame_num(self) -> None:
         frame_count = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.logger.info(f'Total frame: {frame_count}')
+        _logger.info(f'Total frame: {frame_count}')
 
     def _compress_frame(self, frame: np.array) -> bytes:
         ret, buf = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, self.jpeg_quality])
         if not ret:
-            self.logger.error('Failed to compress frame to jpg')
+            _logger.error('Failed to compress frame to jpg')
             sys.exit(1)
 
         return buf.tobytes()
@@ -235,15 +235,10 @@ class AsyncSourceSendFrame(Sourcer):
     """AsyncSource is a class for User Defined Source implementation."""
 
     def __init__(self):
-        # setup logger
-        self.logger = setup_logging('console_logger')
-        log_path = os.getenv('LOG_PATH')
-        log_file = os.path.join(log_path, 'source.log')
-        add_new_filehandler(self.logger, log_file)
-        set_logger_log_level(self.logger)
-        self.logger.info('Source init')
+        setup_logger()
+        _logger.info('Source initialized')
 
-        self.async_video_reader = AsyncVideoReader(self.logger)
+        self.async_video_reader = AsyncVideoReader()
         self.async_video_reader.start()
 
         """
@@ -262,13 +257,13 @@ class AsyncSourceSendFrame(Sourcer):
         if self.to_ack_set:
             return
 
-        # self.logger.debug('datum.num_records: %d', datum.num_records)
+        # _logger.debug('datum.num_records: %d', datum.num_records)
         for _x in range(datum.num_records):
             headers = {'x-txn-id': str(uuid.uuid4())}
 
             frame = self.async_video_reader.get_next_frame()
             if frame is None:
-                self.logger.info('A None frame was passed. src_file has ended')
+                _logger.info('Source has ended')
                 self.async_video_reader.join()
                 await output.put(STREAM_EOF)
                 break
@@ -277,16 +272,27 @@ class AsyncSourceSendFrame(Sourcer):
 
             payload = Payload(
                 frame_index=self.read_idx,
-                original_height=frame.height(),
-                original_width=frame.width(),
+                frame_height=frame.height(),
+                frame_width=frame.width(),
                 compressed_frame=frame.as_compressed_frame(),
             )
 
+            event_time = datetime.now()
+            # Round down to minute for per-minute window
+            key_time = datetime(
+                event_time.year,
+                event_time.month,
+                event_time.day,
+                event_time.hour,
+                event_time.minute,
+                tzinfo=event_time.tzinfo,
+            )
             await output.put(
                 Message(
+                    keys=[key_time.isoformat()],
                     payload=msgspec.msgpack.encode(payload),
                     offset=Offset.offset_with_default_partition_id(str(self.read_idx).encode()),
-                    event_time=datetime.now(),
+                    event_time=event_time,
                     headers=headers,
                 ),
             )
@@ -309,13 +315,13 @@ class AsyncSourceSendFrame(Sourcer):
         for req in ack_request.offsets:
             offset = int(req.offset)
             self.to_ack_set.remove(offset)
-        self.logger.info('Negatively acknowledged offsets: %s', self.nacked)
+        _logger.info('Negatively acknowledged offsets: %s', self.nacked)
 
     async def pending_handler(self) -> PendingResponse:
         """The simple source always returns zero to indicate there is no pending record."""
         return PendingResponse(count=0)
 
-    async def partitions_handler(self) -> PartitionsResponse:
+    async def active_partitions_handler(self) -> PartitionsResponse:
         """The simple source always returns default partitions."""
         return PartitionsResponse(partitions=get_default_partitions())
 
@@ -326,10 +332,10 @@ class AsyncSourceSendFrame(Sourcer):
         # calculate data size of frame(Byte unit of Numpy)
         data_size_bytes = frame.nbytes
 
-        self.logger.debug(f'frame size: {width} x {height}')
-        self.logger.debug(f'channels  : {channels}')
-        self.logger.debug(f'data type : {data_type}')
-        self.logger.debug(
+        _logger.debug(f'frame size: {width} x {height}')
+        _logger.debug(f'channels  : {channels}')
+        _logger.debug(f'data type : {data_type}')
+        _logger.debug(
             f'data size : {data_size_bytes} Byte ({data_size_bytes / 1024:.2f} KB), '
             f'({data_size_bytes / (1024 * 1024):.2f} MB)',
         )

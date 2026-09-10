@@ -1,39 +1,69 @@
-- name: Create PVs if not present
-  ansible.builtin.script: files/recreate-pv-idem.sh '{{ item.pv_name }}'
-  register: numaflow_install_recreate_pv_idem
-  changed_when: numaflow_install_recreate_pv_idem.rc == 1
-  failed_when: numaflow_install_recreate_pv_idem.rc >= 2
-  loop:
-    - pv_name: pv-isbsvc1
-    - pv_name: pv-isbsvc2
-    - pv_name: pv-isbsvc3
+# Run on a worker node (groups.k8s_worker may have multiple hosts)
+- name: (Creating PVs on a worker node)
+  when: inventory_hostname == groups.k8s_worker[0]
+  block:
+    - name: Create the discovery directory /mnt/disks
+      become: true
+      ansible.builtin.file:
+        path: /mnt/disks
+        state: directory
+        mode: "0755"
 
-- name: Get all 3 pv-isbsvc (PersistentVolume)
-  ansible.builtin.command: kubectl get pv -o json
-  register: numaflow_install_pv_list
-  until: >
-    (numaflow_install_pv_list.stdout | from_json)["items"]
-    | selectattr('metadata.name', 'match', '^pv-isbsvc') | list | length == 3
-  retries: 10
-  delay: 6
-  changed_when: false
+    - name: Create ext4 filesystem images for PVs
+      become: true
+      ansible.builtin.script: |
+        files/create-ext4-image.sh \
+          '{{ item.size_mib }}' \
+          '/mnt/disks/{{ item.name }}.img'
+      register: numaflow_install_create_image
+      changed_when: numaflow_install_create_image.rc == 1
+      failed_when: numaflow_install_create_image.rc >= 2
+      loop: '{{ numaflow_install_disks }}'
 
-- name: Assert that 3 pv-isbsvc (PersistentVolume) are Available or Bound
-  ansible.builtin.assert:
-    that:
-      - >
-        (
-          (numaflow_install_pv_list.stdout | from_json)["items"]
-          | selectattr('status.phase', 'equalto', 'Available')
-          | selectattr('metadata.name', 'match', '^pv-isbsvc')
-          | list
-          | length == 3
-        ) or (
-          (numaflow_install_pv_list.stdout | from_json)["items"]
-          | selectattr('status.phase', 'equalto', 'Bound')
-          | selectattr('metadata.name', 'match', '^pv-isbsvc')
-          | list
-          | length == 3
-        )
-    fail_msg: "Expected 3 pv-isbsvc volumes in 'Available'/'Bound' state, but some are missing or not ready."
-    success_msg: "All 3 pv-isbsvc PersistentVolumes are present and in 'Available'/'Bound' state."
+    # ansible.posix.mount will create the path for mount point
+    - name: Loopback-mount ext4 filesystem images
+      become: true
+      ansible.posix.mount:
+        path: '/mnt/disks/{{ item.name }}'
+        src: '/mnt/disks/{{ item.name }}.img'
+        state: mounted
+        fstype: ext4
+        # loop means loopback mount, not related to variable loop below
+        opts: loop
+      loop: '{{ numaflow_install_disks }}'
+
+# Run on the master node (assume groups.k8s_master has only one host)
+- name: (Validating PVs)
+  when: inventory_hostname in groups.k8s_master
+  block:
+    - name: Get all 3 pv-isbsvc (PersistentVolume)
+      ansible.builtin.command: kubectl get pv -o json
+      register: numaflow_install_pv_list
+      until: >
+        (numaflow_install_pv_list.stdout | from_json)["items"]
+        | selectattr('spec.local.path', 'match', '^/mnt/disks/pv-isbsvc')
+        | list
+        | length == 3
+      retries: 10
+      delay: 6
+      changed_when: false
+
+    - name: Assert that 3 pv-isbsvc (PersistentVolume) are Available or Bound
+      ansible.builtin.assert:
+        that:
+          - >
+            (
+              (numaflow_install_pv_list.stdout | from_json)["items"]
+              | selectattr('status.phase', 'equalto', 'Available')
+              | selectattr('spec.local.path', 'match', '^/mnt/disks/pv-isbsvc')
+              | list
+              | length == 3
+            ) or (
+              (numaflow_install_pv_list.stdout | from_json)["items"]
+              | selectattr('status.phase', 'equalto', 'Bound')
+              | selectattr('spec.local.path', 'match', '^/mnt/disks/pv-isbsvc')
+              | list
+              | length == 3
+            )
+        fail_msg: "Expected 3 pv-isbsvc volumes in 'Available'/'Bound' state, but some are missing or not ready."
+        success_msg: "All 3 pv-isbsvc PersistentVolumes are present and in 'Available'/'Bound' state."

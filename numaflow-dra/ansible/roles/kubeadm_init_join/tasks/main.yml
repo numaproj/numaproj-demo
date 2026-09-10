@@ -48,7 +48,7 @@
       register: kubeadm_init_join_fetch_admin_conf
 
     - name: Run "kubectl get nodes" on the master
-      ansible.builtin.command: kubectl get nodes
+      ansible.builtin.command: kubectl get -o name nodes
       register: kubeadm_init_join_nodes
       changed_when: false
 
@@ -78,9 +78,9 @@
   when: inventory_hostname in groups.k8s_worker
   block:
     - name: Run "kubeadm join" on workers
-      when: >-
-        ansible_facts.hostname not in
-          hostvars[groups.k8s_master[0]].kubeadm_init_join_nodes.stdout
+      when: >
+        hostvars[groups.k8s_master[0]].kubeadm_init_join_nodes.stdout_lines
+          is not contains("node/" + ansible_facts.hostname)
       become: true
       ansible.builtin.command: "{{ hostvars[groups.k8s_master[0]].kubeadm_init_join_token_create.stdout }}"
 
@@ -98,6 +98,6 @@
 
 # Run on the master node (assume groups.k8s_master has only one host)
 - name: Check if "kubectl get nodes" runs successfully on the master
-  when: ansible_host in groups.k8s_master
+  when: inventory_hostname in groups.k8s_master
   ansible.builtin.command: kubectl get nodes
   changed_when: false

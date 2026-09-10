@@ -205,9 +205,9 @@ $ kubectl delete configmap fr2-env-cm --ignore-not-found=true
 $ kubectl create configmap fr2-env-cm --from-env-file=fr2.env
 ```
 
-## 1.6. Set up pipeline.yaml for demo
-- `cp dci_poc/pipeline*.yaml demo/`
-- In demo senario(3.6), you switch between pipelines that have the same name. you need to rename `metadata.name` to be same.
+## 1.6. Set up YAML files of pipelines for demo
+
+If you want to run into the section 3.6, you should have the pipeline 01, 02, and 03 with the same `metadata.name`. Give a name you like to it.
 
 # 2. Daily setup of demo
 
@@ -412,8 +412,8 @@ local-static-provisioner-prxx2   1/1     Running   0          46d
 Run as follows to deploy the first pipeline:
 
 ```
-$ kubectl apply -f ../config_yaml/dra-t4.yml
-$ kubectl apply -f ../demo/pipeline1.yaml
+$ kubectl apply -f ../config_yaml/dra-t4.yaml
+$ kubectl apply -f ../dci_poc/01-low-yolov4.yaml
 ```
 
 Then run `./00-stat-demo.sh`. You will see 5 additional pods running as follows (starred line):
@@ -431,18 +431,18 @@ $ ./00-stat-demo.sh
  176646  176648 ./mediamtx
  176648  177288 ffmpeg -stream_loop -1 -re -i ../6896028-uhd_3840_2160_15fps.mp4 -f mjpeg -q:v 0 -f rtsp rtsp://localhost:8554/my_stream
 + kubectl get pod
-NAME                                        READY   STATUS    RESTARTS   AGE
-dci-poc-pipeline1-daemon-65f7c79b8b-q9vm9   1/1     Running   0          62s ⭐️
-dci-poc-pipeline1-filter-resize-0-vesgl     3/3     Running   0          62s ⭐️
-dci-poc-pipeline1-filter-resize2-0-saniq    3/3     Running   0          62s ⭐️
-dci-poc-pipeline1-in-0-jqpa1                3/3     Running   0          62s ⭐️
-dci-poc-pipeline1-inference-0-dvvdd         3/3     Running   0          62s ⭐️
-dci-poc-pipeline1-out-0-cvjod               3/3     Running   0          62s ⭐️
-dci-poc-pipeline1-stream-join-0-pqman       3/3     Running   0          62s ⭐️
-isbsvc-default-js-0                         3/3     Running   0          46d
-isbsvc-default-js-1                         3/3     Running   0          46d
-isbsvc-default-js-2                         3/3     Running   0          46d
-local-static-provisioner-prxx2              1/1     Running   0          46d
+NAME                                 READY   STATUS    RESTARTS   AGE
+isbsvc-default-js-0                  3/3     Running   0          46d
+isbsvc-default-js-1                  3/3     Running   0          46d
+isbsvc-default-js-2                  3/3     Running   0          46d
+local-static-provisioner-prxx2       1/1     Running   0          46d
+low-yolov4-daemon-65f7c79b8b-q9vm9   1/1     Running   0          62s ⭐️
+low-yolov4-filter-resize-0-vesgl     3/3     Running   0          62s ⭐️
+low-yolov4-filter-resize2-0-saniq    3/3     Running   0          62s ⭐️
+low-yolov4-in-0-jqpa1                3/3     Running   0          62s ⭐️
+low-yolov4-inference-0-dvvdd         3/3     Running   0          62s ⭐️
+low-yolov4-out-0-cvjod               3/3     Running   0          62s ⭐️
+low-yolov4-stream-join-0-pqman       3/3     Running   0          62s ⭐️
 + exit 0
 ```
 
@@ -484,15 +484,15 @@ Run as follows to switch to the second pipeline and the third pipeline:
   - GPU used in the inference vertex switches from t4 to a100
 
 ```
-$ kubectl apply -f ../demo/dra-a100.yml
-$ kubectl apply -f ../demo/pipeline2.yaml
+$ kubectl apply -f ../config_yaml/dra-a100.yaml
+$ kubectl apply -f ../dci_poc/02-high-yolov4.yaml
 ```
 
 - When you update an ML inference model using Kubeflow, you can easily update the ML model used in the pipeline.
  - the inference model used in the inference vertex switches from yolov4 to yolov7
 
 ```
-$ kubectl apply -f ../dci_poc/pipeline3.yaml
+$ kubectl apply -f ../dci_poc/03-high-yolov7.yaml
 ```
 
 ## 3.7. Stop playing video streams

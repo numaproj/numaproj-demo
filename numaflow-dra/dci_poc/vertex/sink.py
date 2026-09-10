@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import sys
 import time
@@ -10,14 +9,18 @@ import cv2
 import msgspec
 import numpy as np
 import requests
-from pynumaflow import setup_logging
 from pynumaflow.sinker import Datum, Response, Responses, SinkAsyncServer, Sinker
 
-from lib.log import (
-    add_new_filehandler,
-    set_logger_log_level,
-)
+from lib.log import setup_logging
 from lib.message_spec import Payload
+
+_logger = None
+
+
+def setup_logger():
+    global _logger
+    if _logger is None:
+        _logger = setup_logging(__name__)
 
 
 @dataclass
@@ -31,8 +34,7 @@ class BBox:
 
 
 class FrameForVideoReceiver:
-    def __init__(self, logger: logging.Logger, input_frame: np.ndarray, payload: Payload):
-        self.logger = logger
+    def __init__(self, input_frame: np.ndarray, payload: Payload):
         self._frame_idx = payload.frame_index
         self._input: np.ndarray = input_frame
         self._output: np.ndarray | None = None
@@ -56,21 +58,6 @@ class FrameForVideoReceiver:
             )
             for i in range(len(payload.bounding_boxes))
         ]
-
-    def log_input(self) -> None:
-        self.logger.debug(f'input_frame: {self._input}')
-
-    def log_bbox(self) -> None:
-        for i, bbox in enumerate(self._bboxes):
-            self.logger.info(
-                f'frame_index: {self._frame_idx}, bbox num: {i}-line1, '
-                f'confidence: {bbox.confidence}, class_id: {bbox.class_id}'
-            )
-            self.logger.info(
-                f'frame_index: {self._frame_idx}, bbox num: {i}-line2, '
-                f'top_left: ({bbox.top_left_x}, {bbox.top_left_y}), '
-                f'bottom_right: ({bbox.bottom_right_x}, {bbox.bottom_right_y})'
-            )
 
     def bboxes_fusion(self):
         if self._input.ndim == 3 and self._input.shape[2] == 3:
@@ -112,7 +99,7 @@ class FrameForVideoReceiver:
 
             # Sanity check: skip invalid or degenerate boxes
             if rd_x <= lu_x or rd_y <= lu_y:
-                self.logger.warning(
+                _logger.warning(
                     'Skipping invalid bbox (frame_index=%s): '
                     '[(%s,%s) -> (%s,%s)] from vals=%r is_normalized=%s',
                     self._frame_idx,
@@ -138,37 +125,33 @@ class AsyncSink(Sinker):
     def __init__(
         self, frame_capture_func: Callable[[int, np.ndarray, np.ndarray], None] | None = None
     ):
-        # setup logger
-        self.logger = setup_logging('console_logger')
-        set_logger_log_level(self.logger)
-        log_path = os.getenv('LOG_PATH')
-        log_file = os.path.join(log_path, 'sink.log')
-        add_new_filehandler(self.logger, log_file)
+        setup_logger()
         self.frame_capture_func = frame_capture_func
-        self.logger.info('Sink init')
+        _logger.info('Sink initialized')
 
         # setup ENV
         self.jpeg_quality = int(os.getenv('JPEG_QUALITY', '90'))
         self.receiver_url = os.getenv('RECEIVER_URL')
         if self.receiver_url is None:
             # Quick start mode: dump received frames to a video file
-            self.logger.info('Quick start mode')
+            _logger.info('Quick start mode')
             self.width = int(os.getenv('FR_OUTPUT_WIDTH'))
             self.height = int(os.getenv('FR_OUTPUT_HEIGHT'))
 
             fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
             fps = 15.0
             timestamp = int(time.time())
+            log_path = os.getenv('LOG_PATH')
             video_path = os.path.join(log_path, f'sink_{timestamp}.mp4')
             self.video_writer = cv2.VideoWriter(video_path, fourcc, fps, (self.width, self.height))
-            self.logger.info(f'Video file created: {video_path}')
+            _logger.info(f'Video file created: {video_path}')
 
     # Define a shutdown callback
     def shutdown_callback(self, _loop):
-        self.logger.info('Shutting down')
+        _logger.info('Shutting down')
         if self.receiver_url is not None:
             self.video_writer.release()
-            self.logger.info('Video file released')
+            _logger.info('Video file released')
 
     def send_frame_to_video_receiver(self, frame_bgr: np.ndarray, frame_idx: int) -> None:
         # buf is Raw byte data (after JPEG compression) stored in a One-dim NumPy array
@@ -176,7 +159,7 @@ class AsyncSink(Sinker):
             '.jpg', frame_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), self.jpeg_quality]
         )
         if not ok:
-            self.logger.error('encode failed')
+            _logger.error('Failed to encode frame to jpg')
             sys.exit(1)
 
         files = {
@@ -200,10 +183,9 @@ class AsyncSink(Sinker):
             )
             payload.compressed_frame = None  # in order not to log bytes
 
-            self.logger.info(f'{payload}')
+            _logger.debug(f'Payload without compressed_frame: {payload}')
 
-            send_frame = FrameForVideoReceiver(self.logger, input_frame_bgr, payload)
-            send_frame.log_input()
+            send_frame = FrameForVideoReceiver(input_frame_bgr, payload)
 
             send_frame.bboxes_fusion()
 
@@ -219,9 +201,9 @@ class AsyncSink(Sinker):
 
                 if resp.status_code == 200:
                     count = resp.json()['count']
-                    self.logger.debug(f'frame count: {count}')
+                    _logger.debug(f'frame count: {count}')
                 else:
-                    self.logger.error('Request failed: %s', resp.status_code)
+                    _logger.error(f'Request failed: {resp.status_code}')
                     sys.exit(1)
 
             responses.append(Response.as_success(msg.id))

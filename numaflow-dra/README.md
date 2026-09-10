@@ -2,7 +2,7 @@ The purpose of this repository is verifying the integration of Numaflow and DRA.
 In our plan, we commit this repo to numaproj-demo
 
 # Architecture of AICP Numaflow PoC Pipeline
-![Architecture of AICP Numaflow PoC Pipeline](/docs/assets/AICP_Numaflow_PoC_architecture.svg)
+![Architecture of AICP Numaflow PoC Pipeline](docs/assets/AICP_Numaflow_PoC_architecture.svg)
 
 | Component | Role |
 | :- | :- |
@@ -27,10 +27,12 @@ In our plan, we commit this repo to numaproj-demo
 
 - You can refer to [Note: Environment used for verifying](#note-environment-used-for-verifying) for imformation about the environment we used.
 
-## 1-1. Set up Kubernetes Cluster
+- We have [Ansible scripts](ansible) to install prerequisites. See [ansible/README.md](ansible/README.md) for details.
+
+## 1.1. Set up Kubernetes Cluster
 - Refer to [Bootstrapping clusters with kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/) and set up a k8s cluster with GPU on worker nodes
 
-## 1-2. Enable GPU support
+## 1.2. Enable GPU support
 ### Install nvidia driver
 ```
 sudo add-apt-repository ppa:graphics-drivers/ppa
@@ -60,10 +62,10 @@ exit
 - Install NVIDIA Container Toolkit to refer to [this page](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
   - Don't need to configure
 
-## 1-3. Enable Dynamic Resource Allocation
+## 1.3. Enable Dynamic Resource Allocation
 - You refer to [k8s-dra-driver-gpu](https://github.com/NVIDIA/k8s-dra-driver-gpu) and [Enabling dynamic resource allocation](https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/#enabling-dynamic-resource-allocation), and then enable DRA in your Kubernetes cluster.
 
-## 1-4. Set up Numaflow
+## 1.4. Set up Numaflow
 
 - The following procedure is prepared based on [official quick-start](https://numaflow.numaproj.io/quick-start/#installing-numaflow) and use `local-storage` as `StorageClass`
 
@@ -90,20 +92,20 @@ In the quickstart, we use the following options described in the figure above:
 If you want A-1 (&quot;RTSP&quot; from the Video Streaming Server) and B-1 (&quot;HTTP POST&quot; to the Video Display Server),
 see [demo/README.md](demo/README.md) instead.
 
-## 2-1. Install tools to operate the repository
-### 2-1-1. pipx, Poetry
+## 2.1. Install tools to operate the repository
+### 2.1.1. pipx, Poetry
 - This project uses Poetry for dependency management, building a container that will be used in a pod forming the pipeline.
 - Follow [the pipx official installtion instructions](https://pipx.pypa.io/stable/installation/).
 - Follow ["With pipx" section in the Poetry official installation instructions](https://python-poetry.org/docs/#installing-with-pipx).
 - `source ~/.bashrc`
 
-### 2-1-2. Install docker
+### 2.1.2. Install docker
 - Since use docker to build container, install docker by referring to [this page](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
 - `sudo usermod -aG docker $(whoami)`
 - `newgrp docker`
 - `docker ps`
 
-## 2-2. Configure .env files from template files
+## 2.2. Configure .env files from template files
 
 ```
 cd /path/to/numaflow-dra
@@ -115,7 +117,7 @@ cp repo.env.template repo.env
 - Set `FR_OUTPUT_WIDTH=1280` and `FR_OUTPUT_HEIGHT=720` in fr2.env
 - Other keys will be supported in a later process
 
-## 2-3. Set up input data
+## 2.3. Set up input data
 An input data is an .mp4 file (4K (3840*2160), 15fps). You download a video from a free website and convert it using tools such as ffmpeg.
 
 Please make use of the following websites:
@@ -133,7 +135,7 @@ ffmpeg -i movie.mp4 -vf "scale=3840:2160" -r 15 -c:v libx264 -preset slow -crf 2
 ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,r_frame_rate -of json poc_movie.mp4
 ```
 
-## 2-4. Set up your container registry
+## 2.4. Set up your container registry
 
 - Set up container registry that you can access personally, such as Docker Hub
 
@@ -143,62 +145,61 @@ cd /path/to/numaflow-dra
 
 - Set `REGISTRY_URL` appropriately in the `repo.env` file.
 
-## 2-5. Make a log directory
+## 2.5. Make a video output directory
 
 - Set `LOG_PATH=/var/tmp/logs/numaflow-dra/dci_poc_fr2/` in fr2.env
-- make log dir on worker node to record Vertex execution logs
+- make log dir on worker node so that sink can dump frames to a video file
 ```
-$ sudo mkdir -m 777 -p /var/tmp/logs/numaflow-dra/dci_poc
 $ sudo mkdir -m 777 -p /var/tmp/logs/numaflow-dra/dci_poc_fr2
 ```
 
-## 2-6. Generate pipeline.yml
+## 2.6. Generate YAML files of pipelines
 
 ```
 cd /path/to/numaflow-dra
 ./generate_pipeline_yaml.sh
 ```
 
-- When `generate_pipeline_yaml.sh` is executed, `pipelineXXX.yaml` with `REGISTRY_URL` configured is created in each `pipelineXXX.yaml.template` in various locations
+- When `generate_pipeline_yaml.sh` is executed, `foobar.yaml` with `REGISTRY_URL` configured is created in each `foobar.yaml.template` in various locations
 
-## 2-7. Configure pipelines to read input file directly
+## 2.7. Configure pipelines to read input file directly
 - Set the path where the video is located for `VIDEO_FILE_SRC` in `/path/to/numaflow-dra/app.env`.
   Also, set `SOURCE_INPUT_TYPE` in `/path/to/numaflow-dra/app.env` to `file`.
 
-## 2-8. Build Container & Push it to your Registry
+## 2.8. Build Container & Push it to your Registry
 
 ```
 cd numaflow-dra/dci_poc/XXX/
 make image
 ```
 
-## 2-9. Deploy pipelines
+## 2.9. Deploy pipelines
 - First of all, run the next two commands to create ConfigMap:
   - `kubectl create configmap app-env-cm --from-env-file=app.env`
   - `kubectl create configmap fr2-env-cm --from-env-file=fr2.env`
 - Select a pattern you want to deploy
 
 - pattern1:
-  - `kubectl apply -f config_yaml/dra-t4.yml`
-  - `kubectl apply -f dci_poc/pipeline1.yml`
+  - `kubectl apply -f config_yaml/dra-t4.yaml`
+  - `kubectl apply -f dci_poc/01-low-yolov4.yaml`
 
 - pattern2:
-  - `kubectl apply -f config_yaml/dra-a100.yml`
-  - `kubectl apply -f dci_poc/pipeline2.yml`
+  - `kubectl apply -f config_yaml/dra-a100.yaml`
+  - `kubectl apply -f dci_poc/02-high-yolov4.yaml`
 
 - pattern3:
-  - `kubectl apply -f config_yaml/dra-a100.yml`
-  - `kubectl apply -f dci_poc/pipeline3.yml`
+  - `kubectl apply -f config_yaml/dra-a100.yaml`
+  - `kubectl apply -f dci_poc/03-high-yolov7.yaml`
 
 - Wait for about a minute to let the pipeline output the processed frames to the output video file
-- Run `kubectl apply -f dci_poc/pipelineX.yml` (X is 1, 2, or 3) to stop the pipeline
-- Check the log directory on the worker node as follows whether the output video file `sink_XXXXXXXXXX.mp4` exists:
+- Run `kubectl delete -f dci_poc/0X-foobar.yaml` to stop the pipeline
+- Check the output directory on the worker node as follows whether the output video file `sink_XXXXXXXXXX.mp4` exists:
 
 ```
 username@worker:~$ cd /var/tmp/logs/numaflow-dra/dci_poc_fr2
 username@worker:/var/tmp/logs/numaflow-dra/dci_poc_fr2$ ls
-filter-resize.log  sink.log  sink_1775630605.mp4
-username@worker:/var/tmp/logs/numaflow-dra/dci_poc_fr2$ grep -B1 'Video file' sink.log 
+sink_1775630605.mp4
+username@worker:/var/tmp/logs/numaflow-dra/dci_poc_fr2$ kubectl logs foobar-out-0-XXXXX | grep -B1 'Video file'
 2026-04-08 06:43:25,082 - console_logger - INFO - Quick start mode
 2026-04-08 06:43:25,084 - console_logger - INFO - Video file created: /var/tmp/logs/numaflow-dra/dci_poc_fr2/sink_1775630605.mp4
 --
@@ -219,19 +220,19 @@ That's all.
 
 # 3. Optional configurations
 
-## 3-1. OpenCV without CUDA
+## 3.1. OpenCV without CUDA
 
 In the quick start, the Filter Resize vertex uses CUDA-enabled OpenCV.
 
 If you want it use OpenCV without CUDA, set `FR_USE_CUDA=0` in `app.env` and re-create `app-env-cm` ConfigMap.
 
-## 3-2. Using distinct GPUs
+## 3.2. Using distinct GPUs
 
 In the quick start, the Filter Resize and the Inference vertices share one T4 or A100.
 
-If you have two T4 or A100, and want the two vertices use distinct ones, edit `config_yaml/dra-XXX.yaml` and `dci_poc/pipelineX.yaml` as described in the subsections, and re-apply them.
+If you have two T4 or A100, and want the two vertices use distinct ones, edit `config_yaml/dra-XXX.yaml` and `dci_poc/0X-foobar.yaml` as described in the subsections, and re-apply them.
 
-### 3-2-1. config_yaml/dra-XXX.yaml
+### 3.2.1. config_yaml/dra-XXX.yaml
 
 The following is for `dra-t4.yaml`. The same is true for `dra-a100.yaml`.
 
@@ -254,9 +255,9 @@ The following is for `dra-t4.yaml`. The same is true for `dra-a100.yaml`.
 +          deviceClassName: nvidia-t4
 ```
 
-### 3-2-2. dci_poc/pipelineX.yaml
+### 3.2.2. dci_poc/0X-foobar.yaml
 
-The following is for `pipeline1.yaml`. The same is true for `pipeline2.yaml` and `pipeline3.yaml`.
+The following is for `01-low-yolov4.yaml`. The same is true for `02-high-yolov4.yaml` and `03-high-yolov7.yaml`.
 
 ```diff
      - name: filter-resize
@@ -273,6 +274,22 @@ The following is for `pipeline1.yaml`. The same is true for `pipeline2.yaml` and
 -          resourceClaimName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
 +          resourceClaimTemplateName: numaflow-dra-t4 # numaflow-dra/config_yaml/dra-t4.yaml
 ```
+
+# 4. Other pipelines
+
+There are a few pipelines other than `0X-foobar.yaml`.
+
+## 4.1. 1X-foobar-map-only.yaml
+
+`1X-foobar-map-only.yaml` are similar to `0X-foobar.yaml`, but they use no reduce vertex nor persistent volume for it.
+
+You can re-use your `app.env` and `fr2.env`, but in addition please enable `KEEP_SECONDARY_FRAME=1` in `app.env` (not `fr2.env`) and re-create `app-env-cm`.
+
+## 4.2. 21-day-and-night.yaml
+
+`21-day-and-night.yaml` is a conditial branching pipeline. It performs object detection when a source video frame is bright (in the day), or motion detection when dark (in the night).
+
+You can re-use your `app.env` and `fr2.env`, but in addition please enable `KEEP_SECONDARY_FRAME=1` in `app.env` (not `fr2.env`) and re-create `app-env-cm`. You may also enable and tune `BRIGHTNESS_*` and `MOTION_*` in `app.env`.
 
 # Note: Environment used for verifying
 - k8s cluster: 1 control plane, 2 data Plane
@@ -294,15 +311,15 @@ The following is for `pipeline1.yaml`. The same is true for `pipeline2.yaml` and
 
 | | Control Plane | Data Plane |
 | - | - | - |
-| Ubuntu  | 24.04.3 LTS | Same as left |
-| kubeadm | 1.35.1 | Same as left |
-| kubelet | 1.35.1 | Same as left |
-| kubectl | 1.35.1 | Same as left |
-| CRI-O   | 1.35.1 | Same as left |
-| Calico  | 3.31.4 | Same as left |
-| NVIDIA GPU Driver | - | 580.126.09-0ubuntu0.24.04.2 |
-| Numaflow | 1.7.1 | - |
-| DRA driver | v25.12.0 | - |
+| Ubuntu  | 26.04 LTS | Same as left |
+| kubeadm | 1.36.4 | Same as left |
+| kubelet | 1.36.4 | Same as left |
+| kubectl | 1.36.4 | Same as left |
+| CRI-O   | 1.36.4 | Same as left |
+| Calico  | 3.32.1 | Same as left |
+| NVIDIA GPU Driver | - | 595.84-0ubuntu0.26.04.1 |
+| Numaflow | 1.8.3 | - |
+| DRA driver | 0.5.0 | - |
 | MediaMTX | 1.14.0 | - |
 
 # LICENCE

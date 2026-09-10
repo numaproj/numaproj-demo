@@ -32,11 +32,11 @@ See [README.md](README.md).
 
 ## Install dependencies and download test data
 
-(The commands described below are for testing of `dci_poc/vertex`. You have to replace the path with `dci_poc/vertex_gpu_yolov4` or `dci_poc/vertex_gpu_yolov7` when you want to do testing for each of them.)
+(The commands described below are for testing of `dci_poc/vertex`. You have to replace the path with `dci_poc/vertex_gpu_fr`, `dci_poc/vertex_gpu_yolov4`, or `dci_poc/vertex_gpu_yolov7` when you want to do testing for each of them.)
 
 ```
 $ cd dci_poc/vertex
-$ make test-setup
+$ make setup
 ```
 
 This command also downloads test data. The unit tests use the following files as test data:
@@ -47,20 +47,11 @@ This command also downloads test data. The unit tests use the following files as
 |`dci_poc/vertex_gpu_yolov4`|`ml-models/pytorch-YOLOv4/data/dog.jpg`<br>This JPEG file is located in the downloaded model directory.|
 |`dci_poc/vertex_gpu_yolov7`|`ml-models/official-yolov7/deploy/triton-inference-server/data/dog.jpg`<br>This JPEG file is located in the downloaded model directory.|
 
-## Run unit tests all at once
+## Run unit tests
 
 ```
 $ cd dci_poc/vertex
-$ make test-vertex
-```
-
-## Run each unit test individually
-
-Give APP as follows, where APP is in `tests/dci_poc/APP`.
-
-```
-$ cd dci_poc/vertex
-$ APP=filter_resize_stream make test-exe
+$ make test
 ```
 
 # Development

@@ -127,8 +127,8 @@ main() {
   get_dashboard "${uid}" >|"${tmpfile_get}" || exit 2
   if
     diff -u \
-      <(jq .spec "${tmpfile_get}") \
-      <(jq 'del(.id,.uid,.version)' ${json_file}) >&2
+      <(jq '.spec|del(.schemaVersion)' "${tmpfile_get}") \
+      <(jq 'del(.id,.uid,.version,.schemaVersion)|.weekStart+=""' ${json_file}) >&2
   then
     # Inputs are the same; no need to update
     exit 0

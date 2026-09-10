@@ -1,0 +1,9 @@
+# Assume that the "helm" role has already run.
+- name: Install Node Feature Discovery (NFD)
+  kubernetes.core.helm:
+    name: nfd
+    chart_ref: oci://registry.k8s.io/nfd/charts/node-feature-discovery
+    chart_version: "{{ dra_driver_nvidia_gpu.nfd_ver }}"
+    release_namespace: node-feature-discovery
+    create_namespace: true
+    wait: true

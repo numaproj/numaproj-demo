@@ -26,8 +26,6 @@ def request_generator(count, session=1, handshake=True):
             _, buf = cv2.imencode('.jpg', resized_frame, [cv2.IMWRITE_JPEG_QUALITY, jpeg_quality])
             payload = Payload(
                 frame_index=read_idx,
-                original_height=frame.shape[0],
-                original_width=frame.shape[1],
                 bounding_boxes=[
                     BoundingBox(
                         confidence=0.9,

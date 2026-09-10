@@ -1,45 +1,40 @@
 import logging
-import logging.config
 import os
 import sys
+from datetime import datetime
 
 
-def remove_filehandler_in_logger(logger: logging.Logger) -> logging.Logger:
-    for handler in logger.handlers[:]:
-        if isinstance(handler, logging.FileHandler):
-            logger.removeHandler(handler)
-            handler.close()
+def stdout_filter(record: logging.LogRecord):
+    # Output logs milder than ERROR (WARNING, INFO, ...) to stdout
+    return record.levelno < logging.ERROR
+
+
+class ISO8601Formatter(logging.Formatter):
+    def __init__(self, fmt):
+        super().__init__(fmt)
+        self._tzinfo = datetime.today().astimezone().tzinfo
+
+    def formatTime(self, record: logging.LogRecord, _datafmt=None):
+        dt = datetime.fromtimestamp(record.created, tz=self._tzinfo)
+        return dt.astimezone().isoformat(timespec='seconds')
+
+
+def setup_logging(name: str) -> logging.Logger:
+    logger = logging.getLogger(name)
+    level = os.getenv('LOGGER_LOG_LEVEL', 'NOTSET').upper()
+    formatter = ISO8601Formatter('%(asctime)s %(levelname)-8s %(message)s')
+
+    logger.setLevel(level)
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(formatter)
+    stdout_handler.addFilter(stdout_filter)
+    stdout_handler.setLevel(level)
+    logger.addHandler(stdout_handler)
+
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setFormatter(formatter)
+    stderr_handler.setLevel(logging.ERROR)
+    logger.addHandler(stderr_handler)
 
     return logger
-
-
-def add_new_filehandler(logger: logging.Logger, filename: str) -> None:
-    file_handler = logging.FileHandler(filename)
-    file_handler.setLevel(logging.DEBUG)
-
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-
-    logger.addHandler(file_handler)
-
-
-def change_handler_filename(logger: logging.Logger, filename: str) -> None:
-    remove_filehandler_in_logger(logger)
-
-    add_new_filehandler(logger, filename)
-
-
-# set logger log-level to env LOGGER_LOG_LEVEL
-def set_logger_log_level(logger: logging.Logger) -> None:
-    # See https://docs.python.org/ja/3.12/library/logging.html#logging-levels
-    log_level = os.getenv('LOGGER_LOG_LEVEL', 'NOTSET').upper()
-
-    try:
-        logger.setLevel(getattr(logging, log_level))
-        logger.info(f'set LOGGER_LOG_LEVEL to {log_level}.')
-    except AttributeError:
-        logger.error(
-            f'Invalid LOGGER_LOG_LEVEL: {log_level}. '
-            f'Must be one of NOTSET, DEBUG, INFO, WARNING, ERROR, or CRITICAL.'
-        )
-        sys.exit(1)

@@ -1,30 +1,20 @@
-- name: Add GPG key for Kubernetes repository
-  become: true
-  ansible.builtin.apt_key:
-    url: "https://pkgs.k8s.io/core:/stable:/{{ kubeadm_install.package_ver }}/deb/Release.key"
-    keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-
 - name: Add Kubernetes repository
   become: true
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ kubeadm_install.package_ver }}/deb/ /"
-    filename: kubernetes
-
-- name: Add GPG key for CRI-O repository
-  become: true
-  ansible.builtin.apt_key:
-    url: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/{{ kubeadm_install.package_ver }}/deb/Release.key"
-    keyring: /etc/apt/keyrings/cri-o-apt-keyring.gpg
+  ansible.builtin.deb822_repository:
+    name: kubernetes
+    types: deb
+    uris: "https://pkgs.k8s.io/core:/stable:/v{{ kubeadm_install.repo_ver }}/deb/"
+    suites: /
+    signed_by: "https://pkgs.k8s.io/core:/stable:/v{{ kubeadm_install.repo_ver }}/deb/Release.key"
 
 - name: Add CRI-O repository
   become: true
-  ansible.builtin.apt_repository:
-    # It's more intuitive to be kept in one line than separated into
-    # multiple lines because, in /etc/apt/sources.list.d/*.list, each
-    # entry consists of one line, like as this repo line.
-    # yamllint disable rule:line-length
-    repo: "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/{{ kubeadm_install.package_ver }}/deb/ /"
-    filename: cri-o
+  ansible.builtin.deb822_repository:
+    name: cri-o
+    types: deb
+    uris: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubeadm_install.repo_ver }}/deb/"
+    suites: /
+    signed_by: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubeadm_install.repo_ver }}/deb/Release.key"
 
 - name: Install Kubernetes and CRI-O
   become: true
